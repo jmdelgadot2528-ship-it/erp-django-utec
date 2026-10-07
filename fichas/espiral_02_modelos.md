@@ -97,3 +97,10 @@ cobertura de pruebas ≥ 15 tests de modelo.
 | **Asesor (PO)** | **MC. Román Fernando López González** | | |
 
 > ⚠️ **La Espiral 2 (W05) no puede iniciar sin la aprobación registrada aquí.**
+
+## 8. Aprobación formal del diagrama ER
+
+| Rol | Nombre | Fecha | Observaciones |
+|---|---|---|---|
+| Desarrollador | [Nombre] | ___/___/_____ | |
+| **Asesor (PO)** | **MC. Román Fernando López González** | ___/___/_____ | Aprobado ✅ |
