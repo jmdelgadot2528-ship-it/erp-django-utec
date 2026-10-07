@@ -10,7 +10,7 @@ environ.Env.read_env(BASE_DIR / '.env', encoding = 'utf-8')
 
 SECRET_KEY  = env('SECRET_KEY', default='dev-key-insegura-solo-para-desarrollo')
 DEBUG       = env('DEBUG', default=True)
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['.onrender.com','localhost', '127.0.0.1'])
 
 # ── Apps instaladas ───────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -85,8 +85,8 @@ MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ── Autenticación ─────────────────────────────────────────────────────────
-LOGIN_URL           = '/accounts/login/'
-LOGIN_REDIRECT_URL  = '/productos/'
+LOGIN_URL = '/admin/login/'
+LOGIN_REDIRECT_URL = '/admin/'
 LOGOUT_REDIRECT_URL = '/'
 
 # ── DRF ──────────────────────────────────────────────────────────────────
@@ -97,3 +97,15 @@ REST_FRAMEWORK = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ── Seguridad de Cookies y Sesiones en Producción (Render) ────────────────
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# Permite las solicitudes CSRF desde tu dominio en Render
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
+    'https://erp-django-utec-p2zz.onrender.com',
+]
+
