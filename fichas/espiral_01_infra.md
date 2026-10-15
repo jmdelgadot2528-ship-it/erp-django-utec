@@ -100,3 +100,14 @@ posterior tenga una URL pública verificable desde el inicio del proyecto.
 > Esta espiral aporta evidencia para el **Capítulo 4** (Desarrollo),
 > sección 4.1 "Espiral 1: Infraestructura", y para el
 > **Capítulo 3** (Metodología), subsección "Ciclos del modelo espiral".
+
+    [ ] Fechas de inicio y cierre correctas
+    [ ] Tabla de tareas con estados y tiempos reales
+    [ ] URL pública pegada en evidencias
+    [ ] Resultado de "git log --oneline -5" pegado
+    [ ] Todos los criterios de aceptación marcados
+    [ ] Problemas encontrados documentados (al menos 1)
+    [ ] 3 lecciones aprendidas redactadas
+    [ ] Tiempo total invertido calculado
+    [ ] Campo "Conexión con trabajo recepcional" completado
+
