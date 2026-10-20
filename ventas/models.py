@@ -95,16 +95,7 @@ class DetalleVenta(models.Model):
         help_text='Precio al momento de la venta (D-06).'
     )
 
-    def clean(self) -> None:
-        """Validación de negocio para línea de detalle.
 
-        Raises:
-            ValidationError: si cantidad < 1.
-        """
-        if self.cantidad is not None and self.cantidad < 1:
-            raise ValidationError(
-                {'cantidad': 'La cantidad debe ser al menos 1.'}
-            )
         
     class Meta:
         verbose_name        = 'Detalle de venta'
@@ -127,7 +118,16 @@ class DetalleVenta(models.Model):
         if self.precio_unitario is None:
             self.precio_unitario = self.producto.precio
         super().save(*args, **kwargs)
+    def clean(self) -> None:
+        """Validación de negocio para línea de detalle.
 
+        Raises:
+            ValidationError: si cantidad < 1.
+        """
+        if self.cantidad is not None and self.cantidad < 1:
+            raise ValidationError(
+                {'cantidad': 'La cantidad debe ser al menos 1.'}
+            )
 
 # ── Pedido ─────────────────────────────────────────────────────────────────
 
