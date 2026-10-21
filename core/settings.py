@@ -17,17 +17,21 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['.onrender.com','localhost', 
 INSTALLED_APPS = [
     # Jazzmin PRIMERO — antes de django.contrib.admin
     'jazzmin',                          # ← nueva línea, primera posición
-
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',        # ← requerido por allauth
     # Terceros
+    'allauth',                     # ← nuevo
+    'allauth.account',             # ← nuevo
+    'allauth.socialaccount',       # ← nuevo (para OAuth futuro)
     'rest_framework',
     'whitenoise.runserver_nostatic',
     # Apps del ERP
+    'core',
     'clientes',
     'proveedores',
     'productos',
@@ -46,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',   # ← agregar al final
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -99,8 +104,8 @@ MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ── Autenticación ─────────────────────────────────────────────────────────
-LOGIN_URL = '/admin/login/'
-LOGIN_REDIRECT_URL = '/admin/'
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL  = '/productos/'
 LOGOUT_REDIRECT_URL = '/'
 
 # ── DRF ──────────────────────────────────────────────────────────────────
@@ -222,3 +227,28 @@ JAZZMIN_UI_TWEAKS = {
         'success':   'btn-success',
     },
 }
+
+# ── DJANGO SITES (requerido por allauth) ──────────────────────────────────
+SITE_ID = 1
+
+# ── AUTHENTICATION BACKENDS ───────────────────────────────────────────────
+AUTHENTICATION_BACKENDS = [
+    # Backend estándar de Django (username + password en admin)
+    'django.contrib.auth.backends.ModelBackend',
+    # Backend de allauth (permite login por email también)
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# ── ALLAUTH: configuración para desarrollo académico ──────────────────────
+ACCOUNT_LOGIN_METHODS          = {'username'}   # login por username
+ACCOUNT_EMAIL_REQUIRED         = False          # no obligar correo
+ACCOUNT_EMAIL_VERIFICATION     = 'none'         # no enviar email de verificación
+ACCOUNT_LOGOUT_ON_GET          = True           # logout sin confirmar (dev)
+ACCOUNT_SESSION_REMEMBER       = True           # recordar sesión
+
+# LOGIN_URL y LOGIN_REDIRECT_URL ya definidos en W01:
+# LOGIN_URL           = '/accounts/login/'
+# LOGIN_REDIRECT_URL  = '/productos/'
+LOGOUT_REDIRECT_URL = '/'
+
+

@@ -27,9 +27,13 @@ class ProductoEscrituraTest(TestCase):
     """Tests de CreateView, UpdateView y DeleteView de Producto."""
 
     def setUp(self):
-        self.user = User.objects.create_user(
+        # Crear un superusuario con todos los permisos habilitados
+        self.user = User.objects.create_superuser(
             'testuser', password='testpass123'
         )
+        # ELIMINAR O COMENTAR LA SIGUIENTE LÍNEA:
+        # self.client.force_login(self.user)
+
         self.cat  = Categoria.objects.create(nombre='Cat Test')
         self.prod = Producto.objects.create(
             nombre='Laptop', precio=Decimal('10000.00'),
@@ -163,18 +167,32 @@ class ProveedorEscrituraTest(TestCase):
         self.assertFalse(Proveedor.objects.filter(pk=pk).exists())
 
 
+from clientes.models import Cliente
+from ventas.models import Venta
+
+
 class VentaEscrituraTest(TestCase):
     """Tests de crear_venta y VentaDeleteView."""
 
     def setUp(self):
-        self.user = User.objects.create_user('userV', password='pass')
-        cat       = Categoria.objects.create(nombre='Cat')
-        self.prod = Producto.objects.create(
-            nombre='P', precio=Decimal('100.00'), stock=5, categoria=cat
+        # Superusuario para pruebas de autenticación/permisos
+        self.user = User.objects.create_superuser(
+            'testuser_venta', password='testpass123'
         )
-        self.cli  = Cliente.objects.create(nombre='C', correo='c@t.com')
+        
+        # Cliente y catálogo requeridos para la venta
+        self.cli  = Cliente.objects.create(
+            nombre='Cliente Test', rfc='XAXX010101000'
+        )
+        self.cat  = Categoria.objects.create(nombre='Cat Test')
+        self.prod = Producto.objects.create(
+            nombre='Laptop', precio=Decimal('10000.00'),
+            stock=5, categoria=self.cat
+        )
 
     def test_crear_venta_sin_auth_redirige(self):
+        """GET /ventas/crear/ sin auth → 302 a login."""
+        # Se asegura que no haya sesión iniciada
         r = self.client.get(reverse('ventas:crear'))
         self.assertEqual(r.status_code, 302)
 
