@@ -180,9 +180,9 @@ class VentaEscrituraTest(TestCase):
             'testuser_venta', password='testpass123'
         )
         
-        # Cliente y catálogo requeridos para la venta
+        # Cliente sin el argumento 'rfc'
         self.cli  = Cliente.objects.create(
-            nombre='Cliente Test', rfc='XAXX010101000'
+            nombre='Cliente Test'
         )
         self.cat  = Categoria.objects.create(nombre='Cat Test')
         self.prod = Producto.objects.create(
@@ -192,7 +192,6 @@ class VentaEscrituraTest(TestCase):
 
     def test_crear_venta_sin_auth_redirige(self):
         """GET /ventas/crear/ sin auth → 302 a login."""
-        # Se asegura que no haya sesión iniciada
         r = self.client.get(reverse('ventas:crear'))
         self.assertEqual(r.status_code, 302)
 
