@@ -1,4 +1,5 @@
-# productos/models.py
+# productos/models.py — al inicio, agregar:
+# (el validador se definirá en validators.py en Parte 2)
 """Modelos de la app productos — Espiral 2 W05.
 
 Orden de implementación:
@@ -6,7 +7,7 @@ Orden de implementación:
   2. Producto   (FK → Categoria, FK → Proveedor)  ← Parte 3
 """
 from decimal import Decimal
-
+from .validators import validar_imagen_producto
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -79,9 +80,18 @@ class Producto(models.Model):
     activo    = models.BooleanField(
         default=True, verbose_name='Activo'
     )
+    imagen = models.ImageField(
+        upload_to='productos/',
+        null=True,
+        blank=True,
+        verbose_name='Imagen del producto',
+        help_text='Formatos: JPEG, PNG, WEBP. Máximo 5 MB.',
+        validators=[validar_imagen_producto],   # ← agregar
+    )
     creado    = models.DateTimeField(
         auto_now_add=True, verbose_name='Fecha de registro'
     )
+
     def clean(self) -> None:
         """Validaciones de negocio cruzadas para Producto.
 

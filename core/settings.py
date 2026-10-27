@@ -130,6 +130,8 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
+
+
 # Permite las solicitudes CSRF desde tu dominio en Render
 CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com',

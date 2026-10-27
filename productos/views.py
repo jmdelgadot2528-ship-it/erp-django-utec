@@ -43,8 +43,8 @@ class ProductoDetailView(DetailView):
 class ProductoCreateView(LoginRequiredMixin, CreateView):
     """Formulario para crear un nuevo producto."""
 
-    model         = Producto
-    form_class    = ProductoForm
+    model = Producto
+    form_class = ProductoForm
     template_name = 'productos/crear.html'
     success_url   = reverse_lazy('productos:lista')
 
