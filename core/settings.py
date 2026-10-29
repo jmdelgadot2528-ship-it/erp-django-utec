@@ -98,7 +98,12 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Usa la versión no-manifiesto de WhiteNoise para evitar fallos si falta un archivo
+# Reemplaza la línea de STATICFILES_STORAGE por esta:
+STATICFILES_STORAGE = (
+    'whitenoise.storage.CompressedStaticFilesStorage'  # ← No falla si falta
+                                                       # un archivo estático
+)
 
 # ── Archivos media ────────────────────────────────────────────────────────
 MEDIA_URL  = '/media/'
@@ -196,7 +201,7 @@ JAZZMIN_SETTINGS = {
 
     # Apariencia
     'related_modal_active':     True,
-    'custom_css':               'erp_custom.css',   # archivo en static/
+    'custom_css':               None,   # archivo en static/
     'show_sidebar':             True,
     'navigation_expanded':      True,
     'hide_apps':                [],
