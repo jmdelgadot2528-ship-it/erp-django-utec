@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura {{ venta.pk }}</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 10pt;
+            color: #0E080C;
+        }
+        /* Encabezado: bloque carbón con franja magenta */
+        .header {
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 16px 18px;
+            background-color: #0E080C;
+            border-bottom: 6px solid #E4007C;
+            color: #FFFFFF;
+        }
+        .header h1 {
+            color: #FFFFFF;
+            margin: 0 0 6px 0;
+            font-size: 22pt;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .header p {
+            margin: 2px 0;
+            color: #FFE0EF;
+        }
+        .datos-tabla, .productos-tabla {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        .datos-tabla td {
+            padding: 6px;
+            font-size: 9pt;
+            border: 1px solid #F0C6DB;
+        }
+        .datos-tabla .lbl {
+            background-color: #FFE0EF;
+            font-weight: bold;
+            color: #8B004E;
+            width: 25%;
+        }
+        .productos-tabla th {
+            background-color: #0E080C;
+            color: #FFFFFF;
+            padding: 7px 6px;
+            font-size: 9pt;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 3px solid #E4007C;
+        }
+        .productos-tabla td {
+            padding: 6px;
+            border-bottom: 1px solid #F0C6DB;
+            font-size: 9pt;
+        }
+        .num {
+            text-align: right;
+        }
+        /* Estructura para alinear totales sin usar float */
+        .totales-contenedor {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .total-tabla {
+            width: 50%;
+            border-collapse: collapse;
+        }
+        .total-tabla td {
+            padding: 7px;
+            font-size: 9.5pt;
+            border: 2px solid #0E080C;
+        }
+        .total-tabla .lbl {
+            background-color: #0E080C;
+            font-weight: bold;
+            color: #FFFFFF;
+        }
+        .total-tabla tr.final td {
+            background-color: #E4007C;
+            font-weight: bold;
+            color: #FFFFFF;
+        }
+        .total-tabla tr.final td.lbl {
+            background-color: #0E080C;
+            color: #FFFFFF;
+        }
+        .nota {
+            margin-top: 30px;
+            padding: 10px;
+            background-color: #FFF0F7;
+            border-left: 5px solid #E4007C;
+            font-size: 8.5pt;
+            color: #6E5663;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>FACTURA #{{ venta.pk|stringformat:"05d" }}</h1>
+    <p><strong>{{ config.nombre_empresa }}</strong> {% if config.rfc %} | RFC: {{ config.rfc }}{% endif %}</p>
+    <p>Fecha de emisión: {{ venta.fecha|date:"d/m/Y H:i" }} h</p>
+</div>
+
+<table class="datos-tabla">
+    <tr>
+        <td class="lbl">Cliente:</td>
+        <td>{{ venta.cliente.nombre }}</td>
+        <td class="lbl">Correo:</td>
+        <td>{{ venta.cliente.correo }}</td>
+    </tr>
+    <tr>
+        <td class="lbl">Teléfono:</td>
+        <td>{{ venta.cliente.telefono|default:"—" }}</td>
+        <td class="lbl">Moneda:</td>
+        <td>{{ config.moneda }}</td>
+    </tr>
+</table>
+
+<table class="productos-tabla">
+    <thead>
+        <tr>
+            <th style="width: 5%;">#</th>
+            <th style="width: 45%;">Producto</th>
+            <th class="num" style="width: 15%;">Precio unit.</th>
+            <th class="num" style="width: 15%;">Cant.</th>
+            <th class="num" style="width: 20%;">Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for detalle in venta.detalles.all %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ detalle.producto.nombre }}</td>
+            <td class="num">${{ detalle.precio_unitario }}</td>
+            <td class="num">{{ detalle.cantidad }}</td>
+            <td class="num">${{ detalle.subtotal }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="text-align: center; padding: 10px; color: #6E5663;">
+                Sin productos registrados en esta venta.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Tabla invisible para alinear el resumen de totales a la derecha sin usar float -->
+<table class="totales-contenedor">
+    <tr>
+        <td style="width: 50%;"></td>
+        <td style="width: 50%;">
+            <table class="total-tabla">
+                <tr class="final">
+                    <td class="lbl">TOTAL</td>
+                    <td class="num">${{ venta.total }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<div class="nota">
+    <strong>Nota:</strong> Este documento es una representación impresa de la venta generada por el sistema ERP de {{ config.nombre_empresa }}.
+    {% if hoy %}Generado el {{ hoy|date:"d/m/Y" }}.{% endif %}
+</div>
+
+</body>
+</html>

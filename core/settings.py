@@ -144,10 +144,11 @@ CSRF_TRUSTED_ORIGINS = [
 # ── JAZZMIN — Personalización del admin con Fable 5 AzulERP ───────────────
 JAZZMIN_SETTINGS = {
     # Identidad
-    'site_title':       'ERP Django',
-    'site_header':      'ERP UTEC Celaya',
-    'site_brand':       '📦 ERP Django',
-    'welcome_sign':     'Bienvenido al Sistema ERP · UTEC Celaya',
+    'site_title':       'Catálogo',
+    'site_header':      'Catálogo',
+    'site_brand':       '📦 Catálogo',
+    'welcome_sign':     'Bienvenido a Catálogo',
+    'copyright':        'Catálogo',
     
 
     # Icono del sitio (usar emoji como fallback)
@@ -213,7 +214,7 @@ JAZZMIN_UI_TWEAKS = {
     'brand_small_text':         False,
     'brand_colour':             'navbar-dark',
     'accent':                   'accent-navy',
-    'navbar':                   'navbar-dark',
+    'navbar':                   'navbar-light',
     'no_navbar_border':         False,
     'navbar_fixed':             True,
     'layout_boxed':             False,
@@ -260,5 +261,3 @@ ACCOUNT_SESSION_REMEMBER       = True           # recordar sesión
 # LOGIN_URL           = '/accounts/login/'
 # LOGIN_REDIRECT_URL  = '/productos/'
 LOGOUT_REDIRECT_URL = '/'
-
-

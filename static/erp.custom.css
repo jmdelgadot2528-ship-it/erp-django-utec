@@ -1,71 +1,99 @@
-/* static/erp_custom.css
-   Utilidades adicionales de Fable 5 AzulERP.
-   Las variables CSS principales están definidas en base.html.
-*/
+/* Custom CSS */
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
 
-/* Tarjetas clicables en la bienvenida */
-.erp-module-card {
-    transition: transform .2s, box-shadow .2s;
-    cursor: pointer;
-}
-.erp-module-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
+/* ── JAZZMIN: estilo Plastic Hearts — magenta neón, magenta oscuro, carbón, blanco ── */
+
+/* Fondo con puntos */
+.content-wrapper {
+    background-color: #FFF7FB !important;
+    background-image: radial-gradient(#F0C6DB 1.2px, transparent 1.2px);
+    background-size: 22px 22px;
 }
 
-/* Utilidades de color */
-.text-gold   { color: var(--clr-gold)  !important; }
-.text-navy   { color: var(--clr-navy)  !important; }
-.bg-navy     { background: var(--clr-navy) !important; }
-.border-gold { border-color: var(--clr-gold) !important; }
-
-/* Código monoespaciado */
-.font-mono {
-    font-family: 'JetBrains Mono', Consolas, monospace !important;
-    font-size: .9em;
+/* Barra superior: blanca con línea magenta */
+.main-header.navbar {
+    background-color: #FFFFFF !important;
+    border-bottom: 3px solid #E4007C !important;
 }
+.main-header .nav-link { color: #0E080C !important; font-weight: 700; }
+.main-header .nav-link:hover { color: #E4007C !important; }
 
-/* ── JAZZMIN: Override de colores con Fable 5 AzulERP ─────────────────── */
-
-/* Sidebar color navy */
-.main-sidebar, .sidebar { background-color: #0A2342 !important; }
-
-/* Navbar color navy */
-.main-header.navbar { background-color: #0A2342 !important; }
-
-/* Brand / logo area */
-.brand-link { border-bottom: 1px solid #B8860B !important; }
-.brand-text  { color: #D4AF37 !important; font-weight: 700 !important; }
-
-/* Sidebar links */
-.nav-sidebar .nav-link { color: rgba(255,255,255,.82) !important; }
-.nav-sidebar .nav-link:hover,
-.nav-sidebar .nav-link.active {
-    background-color: #1B4F8A !important;
+/* Sidebar: carbón con enlaces rectangulares */
+.main-sidebar, .sidebar { background-color: #0E080C !important; }
+.main-sidebar { border-right: 4px solid #E4007C; }
+.brand-link {
+    background-color: #0E080C !important;
+    border-bottom: 3px solid #E4007C !important;
+}
+.brand-text {
+    color: #FFFFFF !important; font-weight: 400 !important;
+    font-family: 'Anton', 'Impact', sans-serif;
+    text-transform: uppercase; letter-spacing: .04em;
+}
+.nav-sidebar .nav-link {
+    color: rgba(255,255,255,.82) !important;
+    border-radius: 4px !important;
+    border-left: 4px solid transparent;
+    text-transform: uppercase; letter-spacing: .06em; font-size: .85rem;
+}
+.nav-sidebar .nav-link:hover {
+    background-color: rgba(228,0,124,.2) !important;
     color: #FFFFFF !important;
+    border-left-color: #E4007C;
+}
+.nav-sidebar .nav-link.active,
+.accent-navy .nav-sidebar .nav-link.active {
+    background-color: #E4007C !important;
+    color: #FFFFFF !important;
+    border-left-color: #FFFFFF;
+    box-shadow: 3px 3px 0 #8B004E !important;
 }
 
-/* Accent: botones y badges en dorado */
-.accent-navy .nav-sidebar .nav-link.active {
-    background-color: #B8860B !important;
+/* Tarjetas con contorno grueso y sombra sólida magenta */
+.card {
+    border: 2px solid #0E080C !important;
+    border-radius: 6px !important;
+    box-shadow: 5px 5px 0 #E4007C !important;
 }
+.card-header {
+    background-color: #0E080C !important;
+    color: #FFFFFF !important;
+    border-bottom: 3px solid #E4007C !important;
+    border-radius: 4px 4px 0 0 !important;
+}
+.card-header .card-title, .card-header h3 {
+    font-family: 'Anton', 'Impact', sans-serif; font-weight: 400;
+    text-transform: uppercase; letter-spacing: .05em; color: #FFFFFF !important;
+}
+.content-header h1 {
+    font-family: 'Anton', 'Impact', sans-serif; font-weight: 400;
+    text-transform: uppercase; letter-spacing: .04em; color: #0E080C;
+}
+
+/* Botones rectangulares con sombra */
+.btn {
+    border: 2px solid #0E080C !important;
+    border-radius: 4px !important;
+    box-shadow: 2px 2px 0 #8B004E;
+    font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+}
+.btn-primary, .btn-success { background-color: #E4007C !important; color: #FFFFFF !important; }
+.btn-secondary, .btn-info  { background-color: #FFFFFF !important; color: #0E080C !important; }
+.btn-warning { background-color: #FFE0EF !important; color: #0E080C !important; }
+.btn-danger  { background-color: #C62828 !important; color: #FFFFFF !important; }
+
+/* Enlaces */
+a { color: #B0005F; }
+a:hover { color: #E4007C; }
+
+/* Tablas del listado */
+#result_list thead th, .table thead th {
+    background-color: #0E080C !important;
+    color: #FFFFFF !important;
+    border-bottom: 3px solid #E4007C !important;
+    text-transform: uppercase; letter-spacing: .06em;
+}
+#result_list thead th a { color: #FFFFFF !important; }
 
 /* Footer */
-.main-footer { border-top: 2px solid #B8860B; }
-
-
-/* static/erp_custom.css */
-.main-sidebar, .sidebar { background-color: #0A2342 !important; }
-.main-header.navbar { background-color: #0A2342 !important; }
-.brand-link { border-bottom: 1px solid #B8860B !important; }
-.brand-text  { color: #D4AF37 !important; font-weight: 700 !important; }
-.nav-sidebar .nav-link { color: rgba(255,255,255,.82) !important; }
-.nav-sidebar .nav-link:hover,
-.nav-sidebar .nav-link.active {
-    background-color: #1B4F8A !important;
-    color: #FFFFFF !important;
-}
-.accent-navy .nav-sidebar .nav-link.active {
-    background-color: #B8860B !important;
-}
-.main-footer { border-top: 2px solid #B8860B; }
+.main-footer { border-top: 2px solid #F0C6DB; background: transparent !important; }

@@ -1,49 +1,108 @@
 {% extends "base.html" %}
 {% block title %}Crear cuenta{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Tarjeta dividida: panel negro con trama + formulario (solo diseño) */
+    .auth-wrap { display: flex; justify-content: center; align-items: center; min-height: 65vh; }
+    .auth-card {
+        display: grid; grid-template-columns: 1fr 1.2fr;
+        width: 100%; max-width: 800px;
+        background: var(--clr-surface);
+        border: 2px solid var(--clr-ink); border-radius: 6px;
+        box-shadow: 8px 8px 0 var(--clr-magenta);
+        overflow: hidden;
+    }
+    .auth-side {
+        position: relative; overflow: hidden;
+        background-color: #0E080C;
+        background-image: radial-gradient(rgba(228,0,124,.55) 1.6px, transparent 1.6px);
+        background-size: 14px 14px;
+        color: #FFF;
+        padding: 2.5rem 2rem;
+        display: flex; flex-direction: column; justify-content: flex-end;
+        min-height: 320px;
+        border-right: 3px solid var(--clr-magenta);
+    }
+    .auth-side::after {
+        content: 'ÚNETE'; position: absolute; right: 10px; top: 0; bottom: 0;
+        writing-mode: vertical-rl; display: flex; align-items: center;
+        font-family: 'Anton','Impact',sans-serif; font-size: 3.4rem; letter-spacing: .05em;
+        color: var(--clr-magenta);
+    }
+    .auth-side > * { position: relative; z-index: 1; }
+    .auth-side h2 {
+        font-family: 'Anton','Impact',sans-serif; font-weight: 400; text-transform: uppercase;
+        font-size: 2.2rem; letter-spacing: .03em; margin: 0; color: #FFF;
+        text-shadow: 3px 3px 0 var(--clr-deep);
+    }
+    .auth-side p {
+        display: inline-block; margin: .5rem 0 0; align-self: flex-start;
+        background: #FFF; color: #0E080C; padding: .05rem .5rem;
+        font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+    }
+    .auth-form { padding: 2.25rem 2rem; }
+    .auth-form h3 {
+        font-family: 'Anton','Impact',sans-serif; font-weight: 400; text-transform: uppercase;
+        font-size: 1.5rem; letter-spacing: .04em; color: #FFF; margin: 0 0 1.25rem;
+        display: inline-block; background: var(--clr-magenta);
+        padding: .1rem .7rem; transform: skewX(-6deg);
+    }
+    @media (max-width: 700px) {
+        .auth-card { grid-template-columns: 1fr; }
+        .auth-side { min-height: 150px; padding: 1.5rem; border-right: none; border-bottom: 3px solid var(--clr-magenta); }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div style="display:flex;justify-content:center;
-            align-items:center;min-height:60vh;">
-    <div class="erp-card" style="width:100%;max-width:440px;">
-        <div class="erp-card-header" style="text-align:center;">
-            ✨ Crear cuenta de acceso
+<div class="auth-wrap">
+    <div class="auth-card">
+
+        <div class="auth-side">
+            <h2>📦 Catálogo</h2>
+            <p>Crea tu cuenta de acceso</p>
         </div>
 
-        <form method="post" action="{% url 'account_signup' %}"
-              style="margin-top:.5rem;">
-            {% csrf_token %}
+        <div class="auth-form">
+            <h3>✨ Crear cuenta de acceso</h3>
 
-            {% for field in form %}
-            <div class="mb-4">
-                <label class="erp-label">{{ field.label }}</label>
-                {% if field.field.widget.input_type == 'checkbox' %}
-                    {{ field }}
-                {% else %}
-                    <input type="{{ field.field.widget.input_type }}"
-                           name="{{ field.html_name }}"
-                           class="erp-input"
-                           placeholder="{{ field.label }}"
-                           {% if field.field.required %}required{% endif %}>
-                {% endif %}
-                {% for e in field.errors %}
-                    <p style="color:var(--clr-danger);font-size:.82rem;
-                              margin:.25rem 0 0;">{{ e }}</p>
+            <form method="post" action="{% url 'account_signup' %}">
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div class="mb-4">
+                    <label class="erp-label">{{ field.label }}</label>
+                    {% if field.field.widget.input_type == 'checkbox' %}
+                        {{ field }}
+                    {% else %}
+                        <input type="{{ field.field.widget.input_type }}"
+                               name="{{ field.html_name }}"
+                               class="erp-input"
+                               placeholder="{{ field.label }}"
+                               {% if field.field.required %}required{% endif %}>
+                    {% endif %}
+                    {% for e in field.errors %}
+                        <p style="color:var(--clr-danger);font-size:.82rem;
+                                  margin:.25rem 0 0;">{{ e }}</p>
+                    {% endfor %}
+                </div>
                 {% endfor %}
-            </div>
-            {% endfor %}
 
-            <button type="submit" class="btn-erp-gold"
-                    style="width:100%;padding:.6rem;font-size:1rem;">
-                Crear cuenta
-            </button>
-        </form>
+                <button type="submit" class="btn-erp-gold"
+                        style="width:100%;padding:.6rem;font-size:1rem;">
+                    Crear cuenta
+                </button>
+            </form>
 
-        <p style="text-align:center;margin-top:1rem;
-                  color:var(--clr-muted);font-size:.88rem;">
-            ¿Ya tienes cuenta?
-            <a href="{% url 'account_login' %}"
-               style="color:var(--clr-sky);">Inicia sesión</a>
-        </p>
+            <p style="text-align:center;margin-top:1.25rem;
+                      color:var(--clr-muted);font-size:.88rem;">
+                ¿Ya tienes cuenta?
+                <a href="{% url 'account_login' %}"
+                   style="color:var(--clr-sky);font-weight:700;">Inicia sesión</a>
+            </p>
+        </div>
+
     </div>
 </div>
 {% endblock %}

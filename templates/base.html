@@ -1,247 +1,352 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#0A2342">
-    <title>{% block title %}ERP Django{% endblock %} · UTEC Celaya</title>
+    <meta name="theme-color" content="#0E080C">
+    <title>{% block title %}ERP Django{% endblock %} · Catálogo</title>
 
-    <!-- Google Fonts: Playfair Display + Inter + JetBrains Mono -->
+    <!-- Google Fonts: Anton (títulos) + Inter (texto) + JetBrains Mono (código) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
           rel="stylesheet">
 
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
-    <!-- Fable 5 AzulERP — Design System -->
+    <!-- Design System — Catálogo (paleta Plastic Hearts: magenta neón, magenta oscuro, carbón y blanco) -->
     <style>
-        /* TOKENS MODO DÍA */
+        /* TOKENS MODO DÍA
+           (los nombres de variable se conservan; solo cambian los valores) */
         :root, [data-theme="light"] {
-            --clr-navy   : #0A2342;
-            --clr-royal  : #1B4F8A;
-            --clr-sky    : #4A90D9;
-            --clr-ice    : #E8F0FB;
-            --clr-gold   : #B8860B;
-            --clr-amber  : #D4A017;
-            --clr-cream  : #FDF8E8;
-            --clr-bg     : #F5F7FA;
+            --clr-navy   : #0E080C;   /* carbón: barra lateral y textos fuertes */
+            --clr-royal  : #8B004E;   /* magenta oscuro */
+            --clr-sky    : #E4007C;   /* magenta neón: foco / info */
+            --clr-ice    : #FFF0F7;
+            --clr-gold   : #E4007C;
+            --clr-amber  : #FF5CAE;
+            --clr-cream  : #FFE0EF;
+            --clr-magenta: #E4007C;
+            --clr-deep   : #8B004E;
+            --clr-ink    : #0E080C;   /* contornos */
+            --clr-thead  : #0E080C;   /* encabezados de tabla / tarjeta */
+            --clr-bg     : #FFF7FB;
             --clr-surface: #FFFFFF;
-            --clr-text   : #1A1A2E;
-            --clr-muted  : #5A6A7E;
-            --clr-border : #C8D8EC;
-            --clr-danger : #C0392B;
+            --clr-text   : #0E080C;
+            --clr-muted  : #6E5663;
+            --clr-border : #F0C6DB;
+            --clr-danger : #C62828;
             --clr-ok     : #1A7A4A;
-            --shadow-sm  : 0 1px 4px rgba(10,35,66,.08);
-            --shadow-md  : 0 4px 16px rgba(10,35,66,.12);
+            --shadow-sm  : 3px 3px 0 var(--clr-magenta);
+            --shadow-md  : 6px 6px 0 var(--clr-magenta);
         }
         /* TOKENS MODO NOCHE */
         [data-theme="dark"] {
-            --clr-navy   : #1E3A5F;
-            --clr-royal  : #2E5F9E;
-            --clr-sky    : #6BAEE8;
-            --clr-ice    : #1A2A3A;
-            --clr-gold   : #D4AF37;
-            --clr-amber  : #E8C547;
-            --clr-cream  : #2A2510;
-            --clr-bg     : #0D1B2A;
-            --clr-surface: #142033;
-            --clr-text   : #E2EAF4;
-            --clr-muted  : #8AA0B8;
-            --clr-border : #2A3F58;
-            --clr-danger : #E74C3C;
-            --clr-ok     : #2ECC71;
-            --shadow-sm  : 0 1px 4px rgba(0,0,0,.3);
-            --shadow-md  : 0 4px 16px rgba(0,0,0,.4);
+            --clr-navy   : #050205;
+            --clr-royal  : #FF4DA6;
+            --clr-sky    : #FF4DA6;
+            --clr-ice    : #1F1019;
+            --clr-gold   : #FF4DA6;
+            --clr-amber  : #FF7DBE;
+            --clr-cream  : #2A1222;
+            --clr-magenta: #E4007C;
+            --clr-deep   : #8B004E;
+            --clr-ink    : #E4007C;
+            --clr-thead  : #8B004E;
+            --clr-bg     : #0E080C;
+            --clr-surface: #1A1016;
+            --clr-text   : #F8EEF3;
+            --clr-muted  : #B89AAB;
+            --clr-border : #3A1B2D;
+            --clr-danger : #FF6B6B;
+            --clr-ok     : #4CCB8A;
+            --shadow-sm  : 3px 3px 0 var(--clr-deep);
+            --shadow-md  : 6px 6px 0 var(--clr-deep);
         }
-        /* BASE */
+
+        /* BASE — fondo con puntos tipo trama */
         *, *::before, *::after { box-sizing: border-box; }
         body {
             font-family: 'Inter','Segoe UI',sans-serif;
             font-size: 15px;
-            background: var(--clr-bg);
+            background-color: var(--clr-bg);
+            background-image: radial-gradient(var(--clr-border) 1.2px, transparent 1.2px);
+            background-size: 22px 22px;
             color: var(--clr-text);
             line-height: 1.6;
-            transition: background .25s, color .25s;
+            transition: background-color .25s, color .25s;
             margin: 0;
         }
-        /* NAVBAR */
+        /* Fuente de títulos: condensada, mayúsculas (como la portada) */
+        .erp-brand, .erp-card-header, .erp-table thead th, .erp-page-title h2 {
+            font-family: 'Anton','Impact','Arial Narrow',sans-serif;
+            font-weight: 400; text-transform: uppercase;
+        }
+
+        /* ESTRUCTURA: barra lateral + contenido */
+        .erp-shell {
+            display: grid;
+            grid-template-columns: 250px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+        .erp-content {
+            display: flex; flex-direction: column;
+            min-width: 0; min-height: 100vh;
+        }
+
+        /* BARRA LATERAL (clase .erp-navbar) */
         .erp-navbar {
+            position: sticky; top: 0; height: 100vh;
+            display: flex; flex-direction: column; gap: 1.25rem;
+            padding: 1.5rem 1rem;
             background: var(--clr-navy);
-            border-bottom: 3px solid var(--clr-gold);
-            padding: .65rem 1.5rem;
-            display: flex; align-items: center;
-            justify-content: space-between; flex-wrap: wrap; gap: .5rem;
-            box-shadow: var(--shadow-md);
+            border-right: 4px solid var(--clr-magenta);
+            overflow-y: auto;
         }
         .erp-brand {
-            font-family: 'Playfair Display',Georgia,serif;
-            font-size: 1.3rem; font-weight: 700;
-            color: var(--clr-gold) !important;
-            text-decoration: none; letter-spacing: .04em;
-        }
-        .erp-brand span { color: rgba(255,255,255,.7); font-weight: 300; font-size: .85em; }
-        .erp-nav-links { display: flex; align-items: center; gap: .25rem; flex-wrap: wrap; }
-        .erp-nav-link {
-            color: rgba(255,255,255,.82) !important;
-            font-size: .88rem; font-weight: 500;
-            padding: .35rem .75rem; border-radius: 6px;
+            font-size: 2rem; line-height: 1.05; letter-spacing: .02em;
+            color: #FFFFFF !important;
             text-decoration: none;
-            transition: background .2s, color .2s;
+            padding: 0 .5rem 1.1rem;
+            border-bottom: 3px solid var(--clr-magenta);
         }
-        .erp-nav-link:hover, .erp-nav-link.active {
-            background: var(--clr-royal); color: #FFF !important;
+        .erp-brand span { color: rgba(255,255,255,.7); font-size: .6em; }
+        .erp-nav-links {
+            display: flex; flex-direction: column; gap: .3rem;
+            flex: 1;
+        }
+        .erp-nav-link {
+            display: block;
+            color: rgba(255,255,255,.8) !important;
+            font-size: .82rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .12em;
+            padding: .65rem 1rem; border-radius: 4px;
+            border-left: 4px solid transparent;
+            text-decoration: none;
+            transition: background .15s, color .15s, border-color .15s;
+        }
+        .erp-nav-link:hover {
+            background: rgba(228,0,124,.18); color: #FFF !important;
+            border-left-color: var(--clr-magenta);
+        }
+        .erp-nav-link.active {
+            background: var(--clr-magenta); color: #FFF !important;
+            border-left-color: #FFFFFF;
+            box-shadow: 3px 3px 0 var(--clr-deep);
         }
         .theme-toggle {
-            background: var(--clr-gold); color: var(--clr-navy);
-            border: none; border-radius: 50%;
-            width: 32px; height: 32px; font-size: .9rem;
-            cursor: pointer; transition: transform .2s;
+            margin-top: auto; align-self: flex-start;
+            background: #FFFFFF; color: #0E080C;
+            border: 2px solid var(--clr-magenta); border-radius: 4px;
+            width: 40px; height: 40px; font-size: 1rem;
+            cursor: pointer; transition: transform .15s;
         }
-        .theme-toggle:hover { transform: rotate(20deg); }
+        .theme-toggle:hover { transform: rotate(-8deg) scale(1.06); }
+
         /* CONTENIDO */
-        .erp-main { padding: 2rem 0; min-height: calc(100vh - 110px); }
-        /* CARDS */
+        .erp-main { flex: 1; padding: 2.5rem 0; }
+        .erp-main .container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 2rem; }
+
+        /* CARDS — contorno grueso + sombra sólida */
         .erp-card {
             background: var(--clr-surface);
-            border: 1px solid var(--clr-border);
-            border-radius: 12px; box-shadow: var(--shadow-sm);
-            padding: 1.5rem; margin-bottom: 1.5rem;
-            transition: box-shadow .2s;
+            border: 2px solid var(--clr-ink);
+            border-radius: 6px; box-shadow: var(--shadow-md);
+            padding: 1.5rem; margin-bottom: 1.75rem;
+            transition: transform .15s, box-shadow .15s;
         }
-        .erp-card:hover { box-shadow: var(--shadow-md); }
+        .erp-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0 var(--clr-magenta);
+        }
         .erp-card-header {
-            background: var(--clr-navy); color: #FFF;
-            border-radius: 10px 10px 0 0;
-            padding: .85rem 1.25rem;
-            border-left: 5px solid var(--clr-gold);
-            font-family: 'Playfair Display',serif;
-            font-size: 1.05rem; letter-spacing: .03em;
+            background: var(--clr-thead); color: #FFFFFF;
+            border-bottom: 3px solid var(--clr-magenta);
+            border-radius: 4px 4px 0 0;
+            padding: .8rem 1.25rem;
+            font-size: 1.25rem; letter-spacing: .05em;
             margin: -1.5rem -1.5rem 1.5rem;
         }
+        .erp-card-header::before {
+            content: ''; display: inline-block;
+            width: 12px; height: 12px; margin-right: .65rem;
+            background: var(--clr-magenta); border: 2px solid #FFFFFF;
+        }
+
         /* TABLAS */
         .erp-table {
             width: 100%; border-collapse: separate; border-spacing: 0;
-            border-radius: 10px; overflow: hidden; box-shadow: var(--shadow-sm);
+            border: 2px solid var(--clr-ink);
+            border-radius: 6px; overflow: hidden; box-shadow: var(--shadow-sm);
         }
         .erp-table thead th {
-            background: var(--clr-navy); color: #FFF;
-            font-weight: 600; font-size: .82rem;
-            text-transform: uppercase; letter-spacing: .06em;
-            padding: .75rem 1rem; border-bottom: 3px solid var(--clr-gold);
+            background: var(--clr-thead); color: #FFFFFF;
+            font-size: .95rem; letter-spacing: .1em;
+            padding: .8rem 1rem; border-bottom: 3px solid var(--clr-magenta);
         }
         .erp-table tbody td {
-            background: var(--clr-surface); padding: .65rem 1rem;
+            background: var(--clr-surface); padding: .7rem 1rem;
             border-bottom: 1px solid var(--clr-border); font-size: .9rem;
         }
-        .erp-table tbody tr:nth-child(even) td { background: var(--clr-ice); }
-        .erp-table tbody tr:hover td { background: rgba(74,144,217,.08); }
+        .erp-table tbody tr:last-child td { border-bottom: none; }
+        .erp-table tbody tr:hover td { background: var(--clr-ice); }
         .erp-table tfoot td {
-            background: var(--clr-cream); color: var(--clr-gold);
-            font-weight: 700; border-top: 2px solid var(--clr-gold);
+            background: var(--clr-cream); color: var(--clr-text);
+            font-weight: 700; border-top: 3px solid var(--clr-magenta);
         }
-        /* BOTONES */
+
+        /* BOTONES — rectangulares con sombra sólida */
         .btn-erp-primary {
-            background: var(--clr-navy); color: #FFF;
-            border: 2px solid var(--clr-gold); border-radius: 8px;
-            padding: .45rem 1.2rem; font-weight: 600; font-size: .88rem;
+            background: var(--clr-magenta); color: #FFF;
+            border: 2px solid var(--clr-ink); border-radius: 4px;
+            padding: .5rem 1.3rem; font-weight: 700; font-size: .85rem;
+            text-transform: uppercase; letter-spacing: .08em;
+            box-shadow: 3px 3px 0 var(--clr-deep);
             cursor: pointer; text-decoration: none; display: inline-block;
-            transition: background .2s, color .2s;
+            transition: transform .12s, box-shadow .12s;
         }
-        .btn-erp-primary:hover { background: var(--clr-gold); color: var(--clr-navy); }
+        .btn-erp-primary:hover {
+            color: #FFF; transform: translate(-1px, -1px);
+            box-shadow: 5px 5px 0 var(--clr-deep);
+        }
+        .btn-erp-primary:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--clr-deep); }
         .btn-erp-gold {
-            background: var(--clr-gold); color: var(--clr-navy);
-            border: 2px solid var(--clr-navy); border-radius: 8px;
-            padding: .45rem 1.2rem; font-weight: 700;
+            background: #FFFFFF; color: #0E080C;
+            border: 2px solid #0E080C; border-radius: 4px;
+            padding: .5rem 1.3rem; font-weight: 800; font-size: .85rem;
+            text-transform: uppercase; letter-spacing: .08em;
+            box-shadow: 3px 3px 0 var(--clr-magenta);
             cursor: pointer; text-decoration: none; display: inline-block;
-            transition: background .2s;
+            transition: transform .12s, box-shadow .12s;
         }
-        .btn-erp-gold:hover { background: var(--clr-amber); }
+        .btn-erp-gold:hover {
+            background: #FFE0EF; color: #0E080C; transform: translate(-1px, -1px);
+            box-shadow: 5px 5px 0 var(--clr-magenta);
+        }
+        .btn-erp-gold:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--clr-magenta); }
         .btn-erp-danger {
-            background: var(--clr-danger); color: #FFF; border: none;
-            border-radius: 8px; padding: .4rem 1rem;
-            font-weight: 600; font-size: .85rem;
+            background: var(--clr-danger); color: #FFF;
+            border: 2px solid var(--clr-ink); border-radius: 4px;
+            padding: .4rem 1.1rem; font-weight: 700; font-size: .8rem;
+            text-transform: uppercase; letter-spacing: .08em;
+            box-shadow: 3px 3px 0 var(--clr-deep);
             cursor: pointer; text-decoration: none; display: inline-block;
+            transition: transform .12s, box-shadow .12s;
         }
-        .btn-erp-sm { padding: .25rem .7rem; font-size: .8rem; }
+        .btn-erp-danger:hover {
+            color: #FFF; transform: translate(-1px, -1px);
+            box-shadow: 5px 5px 0 var(--clr-deep);
+        }
+        .btn-erp-sm { padding: .25rem .8rem; font-size: .75rem; }
+
         /* FORMULARIOS */
         .erp-label {
-            font-size: .83rem; font-weight: 600; color: var(--clr-muted);
-            text-transform: uppercase; letter-spacing: .05em;
-            display: block; margin-bottom: .3rem;
+            font-size: .75rem; font-weight: 700; color: var(--clr-muted);
+            text-transform: uppercase; letter-spacing: .12em;
+            display: block; margin-bottom: .35rem;
         }
         .erp-input {
-            background: var(--clr-surface); border: 1.5px solid var(--clr-border);
-            border-radius: 8px; color: var(--clr-text);
-            padding: .5rem .85rem; width: 100%; font-size: .93rem;
-            transition: border-color .2s, box-shadow .2s;
+            background: var(--clr-surface); border: 2px solid var(--clr-ink);
+            border-radius: 4px; color: var(--clr-text);
+            padding: .55rem .9rem; width: 100%; font-size: .93rem;
+            transition: box-shadow .15s, border-color .15s;
         }
         .erp-input:focus {
-            outline: none; border-color: var(--clr-sky);
-            box-shadow: 0 0 0 3px rgba(74,144,217,.18);
+            outline: none; border-color: var(--clr-magenta);
+            box-shadow: 3px 3px 0 var(--clr-magenta);
         }
-        /* BADGES */
+
+        /* BADGES — etiqueta tipo "Parental Advisory" */
         .badge-erp-active {
-            background: rgba(26,122,74,.12); color: var(--clr-ok);
-            border: 1px solid currentColor;
-            font-size: .75rem; padding: .2rem .6rem;
-            border-radius: 20px; font-weight: 600;
+            background: rgba(26,122,74,.14); color: var(--clr-ok);
+            border: 2px solid currentColor;
+            font-size: .72rem; padding: .12rem .6rem;
+            border-radius: 3px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: .06em;
         }
         .badge-erp-inactive {
-            background: rgba(192,57,43,.1); color: var(--clr-danger);
-            border: 1px solid currentColor;
-            font-size: .75rem; padding: .2rem .6rem; border-radius: 20px;
+            background: rgba(198,40,40,.12); color: var(--clr-danger);
+            border: 2px solid currentColor;
+            font-size: .72rem; padding: .12rem .6rem; border-radius: 3px;
+            font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
         }
         .badge-erp-gold {
-            background: var(--clr-cream); color: var(--clr-gold);
-            border: 1px solid var(--clr-gold);
-            font-size: .75rem; padding: .2rem .7rem;
-            border-radius: 20px; font-weight: 700;
+            background: #FFFFFF; color: #0E080C;
+            border: 2px solid #0E080C;
+            font-size: .72rem; padding: .12rem .7rem;
+            border-radius: 2px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: .06em;
         }
+
         /* ALERTAS */
         .erp-alert-danger {
-            background: rgba(192,57,43,.08); border: 1px solid rgba(192,57,43,.3);
-            border-left: 5px solid var(--clr-danger); border-radius: 8px;
+            background: rgba(198,40,40,.08); border: 2px solid var(--clr-danger);
+            border-radius: 6px; box-shadow: 3px 3px 0 var(--clr-danger);
             padding: 1rem 1.25rem;
         }
         .erp-alert-info {
-            background: var(--clr-ice); border: 1px solid var(--clr-border);
-            border-left: 5px solid var(--clr-sky); border-radius: 8px;
+            background: var(--clr-ice); border: 2px solid var(--clr-magenta);
+            border-radius: 6px; box-shadow: 3px 3px 0 var(--clr-magenta);
             padding: 1rem 1.25rem;
         }
         .erp-alert-success {
-            background: rgba(26,122,74,.08); border: 1px solid rgba(26,122,74,.3);
-            border-left: 5px solid var(--clr-ok); border-radius: 8px;
+            background: rgba(26,122,74,.08); border: 2px solid var(--clr-ok);
+            border-radius: 6px; box-shadow: 3px 3px 0 var(--clr-ok);
             padding: 1rem 1.25rem;
         }
-        /* TÍTULO DE PÁGINA */
+
+        /* TÍTULO DE PÁGINA — etiqueta magenta inclinada */
         .erp-page-title {
-            display: flex; align-items: center; gap: 1rem;
-            margin-bottom: 1.5rem; padding-bottom: .75rem;
-            border-bottom: 2px solid var(--clr-border);
+            display: flex; align-items: center; gap: 1.25rem;
+            margin-bottom: 1.75rem; flex-wrap: wrap;
         }
         .erp-page-title h2 {
-            font-family: 'Playfair Display',serif;
-            font-size: 1.6rem; color: var(--clr-navy); margin: 0;
+            display: inline-block;
+            font-size: 2.1rem; letter-spacing: .04em; line-height: 1.15;
+            color: #FFFFFF; margin: 0;
+            background: var(--clr-magenta);
+            padding: .15rem .8rem;
+            transform: skewX(-6deg);
+            box-shadow: 4px 4px 0 var(--clr-thead);
         }
-        [data-theme="dark"] .erp-page-title h2 { color: var(--clr-sky); }
+
         /* CÓDIGO */
         code, .mono {
             font-family: 'JetBrains Mono',Consolas,monospace;
             font-size: .85em; color: var(--clr-royal);
-            background: var(--clr-ice); padding: .1em .4em; border-radius: 4px;
+            background: var(--clr-ice); padding: .1em .4em; border-radius: 3px;
         }
-        [data-theme="dark"] code,
-        [data-theme="dark"] .mono {
-            color: var(--clr-sky); background: rgba(74,144,217,.12);
-        }
+
         /* FOOTER */
         .erp-footer {
-            background: var(--clr-navy); color: rgba(255,255,255,.6);
-            text-align: center; font-size: .78rem;
-            padding: .75rem; border-top: 2px solid var(--clr-gold);
+            color: var(--clr-muted);
+            text-align: center; font-size: .75rem;
+            text-transform: uppercase; letter-spacing: .12em;
+            padding: 1rem; border-top: 2px solid var(--clr-border);
+        }
+        .erp-footer::before {
+            content: '● ● ●'; display: block; letter-spacing: .5em;
+            color: var(--clr-magenta); font-size: .55rem; margin-bottom: .3rem;
+        }
+
+        /* MÓVIL: la barra lateral pasa a ser una barra superior */
+        @media (max-width: 900px) {
+            .erp-shell { display: block; }
+            .erp-navbar {
+                position: static; height: auto;
+                flex-direction: row; flex-wrap: wrap; align-items: center;
+                border-right: none; border-bottom: 4px solid var(--clr-magenta);
+                padding: .8rem 1rem; gap: .6rem;
+            }
+            .erp-brand { border-bottom: none; padding: 0 .5rem 0 0; font-size: 1.6rem; }
+            .erp-nav-links { flex-direction: row; flex-wrap: wrap; align-items: center; flex: 1 1 100%; }
+            .erp-nav-link { border-left: none; border-bottom: 3px solid transparent; }
+            .erp-nav-link:hover, .erp-nav-link.active { border-left: none; }
+            .theme-toggle { margin-top: 0; margin-left: auto; }
+            .erp-content { min-height: 0; }
+            .erp-main .container { padding: 0 1rem; }
         }
     </style>
     {% block extra_css %}{% endblock %}
@@ -249,70 +354,76 @@
 
 <body>
 
-<!-- NAVBAR -->
-<!-- NAVBAR -->
-<nav class="erp-navbar">
-    <a class="erp-brand" href="/">📦 ERP Django <span>· UTEC Celaya</span></a>
-    <div class="erp-nav-links">
-        <a href="{% url 'productos:lista' %}"
-           class="erp-nav-link {% block nav_productos %}{% endblock %}">Productos</a>
-        <a href="{% url 'clientes:lista' %}"
-           class="erp-nav-link {% block nav_clientes %}{% endblock %}">Clientes</a>
-        <a href="{% url 'proveedores:lista' %}"
-           class="erp-nav-link {% block nav_proveedores %}{% endblock %}">Proveedores</a>
-        <a href="{% url 'ventas:lista' %}"
-           class="erp-nav-link {% block nav_ventas %}{% endblock %}">Ventas</a>
-        <a href="{% url 'reportes:inicio' %}"
-           class="erp-nav-link {% block nav_reportes %}{% endblock %}">Reportes</a>
-        <a href="/admin/" class="erp-nav-link">Admin</a>
-        {% if user.is_authenticated %}
-            <a href="/accounts/logout/" class="erp-nav-link">
-                Salir ({{ user.username }})
-            </a>
-        {% else %}
-            <a href="/accounts/login/" class="erp-nav-link">Entrar</a>
+<div class="erp-shell">
+
+    <!-- BARRA LATERAL -->
+    <nav class="erp-navbar">
+        <a class="erp-brand" href="/">📦 Catálogo</a>
+        <div class="erp-nav-links">
+            <a href="{% url 'productos:lista' %}"
+               class="erp-nav-link {% block nav_productos %}{% endblock %}">Productos</a>
+            <a href="{% url 'clientes:lista' %}"
+               class="erp-nav-link {% block nav_clientes %}{% endblock %}">Clientes</a>
+            <a href="{% url 'proveedores:lista' %}"
+               class="erp-nav-link {% block nav_proveedores %}{% endblock %}">Proveedores</a>
+            <a href="{% url 'ventas:lista' %}"
+               class="erp-nav-link {% block nav_ventas %}{% endblock %}">Ventas</a>
+            <a href="{% url 'reportes:inicio' %}"
+               class="erp-nav-link {% block nav_reportes %}{% endblock %}">Reportes</a>
+            <a href="/admin/" class="erp-nav-link">Admin</a>
+            {% if user.is_authenticated %}
+                <a href="/accounts/logout/" class="erp-nav-link">
+                    Salir ({{ user.username }})
+                </a>
+            {% else %}
+                <a href="/accounts/login/" class="erp-nav-link">Entrar</a>
+            {% endif %}
+            <button class="theme-toggle" id="themeBtn" title="Modo claro/oscuro">🌙</button>
+        </div>
+    </nav>
+
+    <div class="erp-content">
+
+        <!-- MENSAJES FLASH -->
+        {% if messages %}
+        <div class="container mt-3">
+            {% for m in messages %}
+            <div class="erp-alert-{% if m.tags == 'error' %}danger{% elif m.tags == 'success' %}success{% else %}info{% endif %} d-flex justify-content-between align-items-center mb-2"
+                 role="alert">
+                <span>{{ m }}</span>
+                <button onclick="this.parentElement.style.display='none'"
+                        style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:inherit;">×</button>
+            </div>
+            {% endfor %}
+        </div>
         {% endif %}
-        <button class="theme-toggle" id="themeBtn" title="Modo claro/oscuro">🌙</button>
-    </div>
-</nav>
 
-<!-- MENSAJES FLASH -->
-{% if messages %}
-<div class="container mt-3">
-    {% for m in messages %}
-    <div class="erp-alert-{% if m.tags == 'error' %}danger{% elif m.tags == 'success' %}success{% else %}info{% endif %} d-flex justify-content-between align-items-center mb-2"
-         role="alert">
-        <span>{{ m }}</span>
-        <button onclick="this.parentElement.style.display='none'"
-                style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:inherit;">×</button>
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="erp-main">
+            <div class="container">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="erp-footer">
+            Catálogo · Django 4.2 LTS
+        </footer>
+
     </div>
-    {% endfor %}
 </div>
-{% endif %}
-
-<!-- CONTENIDO PRINCIPAL -->
-<main class="erp-main">
-    <div class="container">
-        {% block content %}{% endblock %}
-    </div>
-</main>
-
-<!-- FOOTER -->
-<footer class="erp-footer">
-    ERP Django · Django 4.2 LTS · Fable 5 AzulERP · UTEC Celaya · Espiral 1
-</footer>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
 </script>
 
-<!-- Toggle modo noche -->
+<!-- Toggle modo noche (el tema por defecto ahora es oscuro) -->
 <script>
 (function () {
     var btn  = document.getElementById('themeBtn');
     var html = document.documentElement;
     var icons = { light: '🌙', dark: '☀️' };
-    var saved = localStorage.getItem('erpTheme') || 'light';
+    var saved = localStorage.getItem('erpTheme') || 'dark';
     html.setAttribute('data-theme', saved);
     if (btn) btn.textContent = icons[saved];
     if (btn) {
