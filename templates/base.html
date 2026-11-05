@@ -136,6 +136,13 @@
             border-left-color: #FFFFFF;
             box-shadow: 3px 3px 0 var(--clr-deep);
         }
+        .erp-cart-count {
+            display: inline-block; min-width: 22px; padding: 0 .4rem;
+            margin-left: .35rem; text-align: center;
+            background: #FFFFFF; color: #0E080C;
+            border-radius: 2px; font-size: .75rem; font-weight: 800;
+            letter-spacing: 0;
+        }
         .theme-toggle {
             margin-top: auto; align-self: flex-start;
             background: #FFFFFF; color: #0E080C;
@@ -370,6 +377,17 @@
                class="erp-nav-link {% block nav_ventas %}{% endblock %}">Ventas</a>
             <a href="{% url 'reportes:inicio' %}"
                class="erp-nav-link {% block nav_reportes %}{% endblock %}">Reportes</a>
+            <!-- W13: catálogo público + contador del carrito -->
+            <a href="{% url 'catalogo:catalogo' %}"
+               class="erp-nav-link {% block nav_catalogo %}{% endblock %}">
+                🛒 Tienda
+            </a>
+            {% if carrito_total_items > 0 %}
+            <a href="{% url 'catalogo:carrito' %}"
+               class="erp-nav-link erp-nav-cart">
+                🛍️ Carrito <span class="erp-cart-count">{{ carrito_total_items }}</span>
+            </a>
+            {% endif %}
             <a href="/admin/" class="erp-nav-link">Admin</a>
             {% if user.is_authenticated %}
                 <a href="/accounts/logout/" class="erp-nav-link">
