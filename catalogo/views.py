@@ -15,6 +15,11 @@ Estructura del carrito en sesión:
         ...
     }
 """
+
+# catalogo/views.py — agregar imports al inicio:
+import stripe
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from decimal import Decimal
 
 from django.contrib import messages
@@ -22,8 +27,17 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import ListView
 
 from productos.models import Producto
+from ventas.models import DetalleVenta, Pedido
 
+from .checkout_utils import (
+    calcular_totales,
+    generar_numero_pedido,
+    obtener_o_crear_cliente,
+)
 from .filters import ProductoFilter
+
+# Asignar la clave secreta desde settings con fallback
+#stripe.api_key = getattr(settings, 'STRIPE_SECRET_KEY', None)
 
 
 # ── CATÁLOGO ───────────────────────────────────────────────────────────────
@@ -187,3 +201,94 @@ def vaciar_carrito(request):
         _guardar_carrito(request, {})
         messages.info(request, 'Carrito vaciado.')
     return redirect('catalogo:carrito')
+
+
+# catalogo/views.py — agregar al final:
+
+@login_required
+def checkout(request):
+    carrito = _obtener_carrito(request)
+    if not carrito:
+        messages.warning(request, 'Tu carrito está vacío.')
+        return redirect('catalogo:catalogo')
+
+    totales         = calcular_totales(carrito)
+    publishable_key = settings.STRIPE_PUBLISHABLE_KEY
+
+    if request.method == 'POST':
+        try:
+            cliente = obtener_o_crear_cliente(request.user)
+            numero  = generar_numero_pedido()
+            pedido  = Pedido.objects.create(
+                numero_pedido = numero,
+                cliente       = cliente,
+                estado        = 'pendiente',
+                total_pagado  = totales['total'],
+            )
+
+            # Asignación explícita de la API Key en el POST
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+
+            stripe.max_network_retries = 3  # Reintenta automáticamente si la red cae
+
+            monto_centavos = int(totales['total'] * 100)
+
+            intent = stripe.PaymentIntent.create(
+                amount          = monto_centavos,
+                currency        = 'mxn',
+                metadata        = {
+                    'pedido_id':  pedido.pk,
+                    'pedido_num': pedido.numero_pedido,
+                    'cliente':    cliente.nombre,
+                },
+                idempotency_key = f'pedido-{pedido.pk}',
+            )
+
+            return render(request, 'catalogo/checkout.html', {
+                'carrito':         carrito,
+                'totales':         totales,
+                'pedido':          pedido,
+                'client_secret':   intent.client_secret,
+                'publishable_key': publishable_key,
+            })
+
+        except stripe.error.StripeError as exc:
+            messages.error(request, f'Error al conectar con Stripe: {exc.user_message}')
+            return redirect('catalogo:pago_error')
+        except Exception as exc:
+            messages.error(request, f'Error inesperado en el proceso de pago: {exc}')
+            return redirect('catalogo:pago_error')
+
+    return render(request, 'catalogo/checkout.html', {
+        'carrito':         carrito,
+        'totales':         totales,
+        'client_secret':   None,
+        'publishable_key': publishable_key,
+    })
+
+
+def pago_exitoso(request, pedido_id: int):
+    """Vista de confirmación post-pago exitoso.
+
+    Vacía el carrito de la sesión y muestra el número de pedido.
+    Stripe redirige aquí después de `stripe.confirmCardPayment` exitoso.
+    """
+    from django.shortcuts import get_object_or_404
+    pedido = get_object_or_404(Pedido, pk=pedido_id)
+
+    # Vaciar el carrito al confirmar el pago
+    _guardar_carrito(request, {})
+    messages.success(
+        request,
+        f'¡Pago exitoso! Tu pedido {pedido.numero_pedido} '
+        f'está confirmado. Total: ${pedido.total_pagado}'
+    )
+
+    return render(request, 'catalogo/pago_exitoso.html', {
+        'pedido': pedido,
+    })
+
+
+def pago_error(request):
+    """Vista de error de pago — muestra mensaje y permite reintentar."""
+    return render(request, 'catalogo/pago_error.html')

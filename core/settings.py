@@ -1,17 +1,21 @@
 # core/settings.py
+# ── Variables de entorno ──────────────────────────────────────────────────
+import os
 import environ
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ── Variables de entorno ──────────────────────────────────────────────────
 env = environ.Env(DEBUG=(bool, True))
-environ.Env.read_env(BASE_DIR / '.env', encoding = 'utf-8')
 
-SECRET_KEY  = env('SECRET_KEY', default='dev-key-insegura-solo-para-desarrollo')
-DEBUG = env('DEBUG', default=True)
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['.onrender.com','localhost', '127.0.0.1'])
+# Carga el archivo .env solo si existe (compatible con local y Render)
+env_file = os.path.join(BASE_DIR, '.env')
+if os.path.exists(env_file):
+    environ.Env.read_env(env_file, encoding='utf-8')
 
+SECRET_KEY    = env('SECRET_KEY', default='dev-key-insegura-solo-para-desarrollo')
+DEBUG         = env('DEBUG', default=True)
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['.onrender.com', 'localhost', '127.0.0.1'])
 # ── Apps instaladas ───────────────────────────────────────────────────────
 # core/settings.py — actualizar INSTALLED_APPS
 INSTALLED_APPS = [
@@ -149,7 +153,10 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 
-# core/settings.py — agregar al final del archivo
+# ── STRIPE (Pasarela de pago) ──────────────────────────────────────────────
+STRIPE_SECRET_KEY      = env('STRIPE_SECRET_KEY', default='sk_test_placeholder')
+STRIPE_PUBLISHABLE_KEY = env('STRIPE_PUBLISHABLE_KEY', default='pk_test_placeholder')
+STRIPE_WEBHOOK_SECRET  = env('STRIPE_WEBHOOK_SECRET', default='whsec_placeholder')
 
 # ── JAZZMIN — Personalización del admin con Fable 5 AzulERP ───────────────
 JAZZMIN_SETTINGS = {
