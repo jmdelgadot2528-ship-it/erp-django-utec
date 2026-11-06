@@ -226,22 +226,19 @@ def checkout(request):
                 total_pagado  = totales['total'],
             )
 
-            # Asignación explícita de la API Key en el POST
+            # Asignar API Key explícitamente en el POST
             stripe.api_key = settings.STRIPE_SECRET_KEY
-
-            stripe.max_network_retries = 3  # Reintenta automáticamente si la red cae
 
             monto_centavos = int(totales['total'] * 100)
 
             intent = stripe.PaymentIntent.create(
-                amount          = monto_centavos,
-                currency        = 'mxn',
-                metadata        = {
+                amount   = monto_centavos,
+                currency = 'mxn',
+                metadata = {
                     'pedido_id':  pedido.pk,
                     'pedido_num': pedido.numero_pedido,
                     'cliente':    cliente.nombre,
                 },
-                idempotency_key = f'pedido-{pedido.pk}',
             )
 
             return render(request, 'catalogo/checkout.html', {
