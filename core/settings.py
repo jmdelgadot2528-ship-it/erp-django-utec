@@ -154,10 +154,9 @@ CSRF_TRUSTED_ORIGINS = [
 
 
 # ── STRIPE (Pasarela de pago) ──────────────────────────────────────────────
-STRIPE_SECRET_KEY      = env('STRIPE_SECRET_KEY', default='sk_test_placeholder')
-STRIPE_PUBLISHABLE_KEY = env('STRIPE_PUBLISHABLE_KEY', default='pk_test_placeholder')
-STRIPE_WEBHOOK_SECRET  = env('STRIPE_WEBHOOK_SECRET', default='whsec_placeholder')
-
+STRIPE_SECRET_KEY      = 'sk_test_51UYBKj91p7kvzuOWZgV3jCeOI6rcw682FL2Fh9UQB9C8Zf1vMgYnUKvKilfPmAaq4hGTzzFN97sL98mWg2aWhGFz00ZSfXtBG6'
+STRIPE_PUBLISHABLE_KEY = 'pk_test_51UYBKj91p7kvzuOWoCFY6qCqFgOCytKysIuUtYL1fwMsNTKppLiisC3XAF7rXoMHRjudT4BKDZzc6psCckSdEZih00uEeFgt7O'
+STRIPE_WEBHOOK_SECRET  = 'whsec_ac0976365224ab2de70ba48f2df48ee428ef599e6523cd8a342efa882cc1c92f'
 # ── JAZZMIN — Personalización del admin con Fable 5 AzulERP ───────────────
 JAZZMIN_SETTINGS = {
     # Identidad

@@ -203,7 +203,7 @@ def vaciar_carrito(request):
     return redirect('catalogo:carrito')
 
 
-# catalogo/views.py — agregar al final:
+# ── CHECKOUT Y PAGOS ────────────────────────────────────────────────────────
 
 @login_required
 def checkout(request):
@@ -218,12 +218,27 @@ def checkout(request):
     if request.method == 'POST':
         try:
             cliente = obtener_o_crear_cliente(request.user)
-            numero  = generar_numero_pedido()
-            pedido  = Pedido.objects.create(
-                numero_pedido = numero,
-                cliente       = cliente,
-                estado        = 'pendiente',
-                total_pagado  = totales['total'],
+
+            # ── 2. Crear el Pedido con snapshot del carrito ────────────
+            numero = generar_numero_pedido()
+
+            # Construir el snapshot: lista de dicts serializables
+            snapshot = [
+                {
+                    'producto_id': int(prod_id),
+                    'nombre':      datos['nombre'],
+                    'cantidad':    int(datos['cantidad']),
+                    'precio':      datos['precio'],   # ya es str
+                }
+                for prod_id, datos in carrito.items()
+            ]
+
+            pedido = Pedido.objects.create(
+                numero_pedido  = numero,
+                cliente        = cliente,
+                estado         = 'pendiente',
+                total_pagado   = totales['total'],
+                items_snapshot = snapshot,           # ← nuevo
             )
 
             # Asignar API Key explícitamente en el POST
