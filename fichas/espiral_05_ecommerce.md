@@ -55,10 +55,14 @@ automática vía webhook con descuento de stock.
 | 147 tests OK | ✅ |
 
 ## 5. Problemas encontrados
-(completar durante la sesión)
+
+| # | Síntoma | Causa | Solución |
+|---|---|---|---|
+| 1 | Stripe: "Se efectuó correctamente", pero en Django el pedido seguía "Pendiente de pago" y el stock no bajaba | La URL del webhook no era la del servicio de Render (404, `x-render-routing: no-server`) | Usar la URL propia (`https://erp-django-utec-web.onrender.com/catalogo/webhook/`), con el endpoint en modo de prueba y el *Signing secret* del Dashboard |
+| 2 | Con la URL correcta, Stripe recibía **HTTP 500** | stripe 16.1.0: `construct_event()` devuelve un `StripeObject` que no es `dict` → `.get()` lanza `AttributeError` | `event = event.to_dict()` en `webhook_views.py` + test de regresión `WebhookStripeObjectTest` |
 
 ## 6. Lecciones aprendidas
-1.
+1. Los *mocks* deben parecerse al objeto real: los tests con `dict` pasaban mientras producción fallaba con HTTP 500.
 2.
 3.
 

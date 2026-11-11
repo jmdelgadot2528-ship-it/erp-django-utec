@@ -21,7 +21,8 @@ import stripe
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from decimal import Decimal
-
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import ListView
@@ -304,3 +305,39 @@ def pago_exitoso(request, pedido_id: int):
 def pago_error(request):
     """Vista de error de pago — muestra mensaje y permite reintentar."""
     return render(request, 'catalogo/pago_error.html')
+
+
+# ── WEBHOOK DE STRIPE ───────────────────────────────────────────────────────
+
+@csrf_exempt
+def webhook(request):
+    """Procesa los eventos enviados por Stripe (Webhooks)."""
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    endpoint_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', None)
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError:
+        # Carga útil no válida
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError:
+        # Firma no válida
+        return HttpResponse(content="Firma inválida.", status=400)
+
+    # Manejar el evento
+    if event['type'] == 'payment_intent.succeeded':
+        intent = event['data']['object']
+        pedido_id = intent.get('metadata', {}).get('pedido_id')
+        
+        if pedido_id:
+            try:
+                pedido = Pedido.objects.get(pk=pedido_id)
+                pedido.estado = 'pagado'
+                pedido.save()
+            except Pedido.DoesNotExist:
+                pass
+
+    return HttpResponse(status=200)
