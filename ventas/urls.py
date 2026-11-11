@@ -1,3 +1,4 @@
+# ventas/urls.py
 from django.urls import path
 from . import views
 
@@ -7,6 +8,7 @@ urlpatterns = [
     path('', views.VentaListView.as_view(), name='lista'),
     path('inicio/', views.VentaListView.as_view(), name='inicio'),
     path('<int:venta_id>/', views.VentaDetailView.as_view(), name='detalle'),
+    path('pedido/<int:pedido_id>/', views.PedidoDetailView.as_view(), name='detalle_pedido'),
     path('nueva/', views.crear_venta, name='crear'),
     path('<int:venta_id>/eliminar/', views.VentaDeleteView.as_view(), name='eliminar'),
     path('<int:venta_id>/pdf/', views.venta_pdf, name='pdf'),
