@@ -87,6 +87,12 @@ if _bucket:
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 WHITENOISE_MANIFEST_STRICT = False
 
+# core/settings_prod.py — agregar:
+
+# En producción: usar SendGrid via anymail
+EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
+
+
 # ── LOGGING: solo WARNING y superiores en producción ──────────────────────
 LOGGING = {
     'version': 1,

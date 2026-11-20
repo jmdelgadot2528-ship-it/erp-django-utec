@@ -24,3 +24,7 @@ media/
 # Sistema operativo
 Thumbs.db
 .DS_Store
+
+# W17-W18 (PC escolar)
+correos_enviados/
+celerybeat-schedule*

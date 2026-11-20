@@ -3,6 +3,8 @@
 import os
 import environ
 from pathlib import Path
+from datetime import timedelta                    # si ya está arriba, no repetir
+from celery.schedules import crontab              # lo usa CELERY_BEAT_SCHEDULE (W18)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -33,6 +35,7 @@ INSTALLED_APPS = [
     'allauth.account',             # ← nuevo
     'allauth.socialaccount',       # ← nuevo (para OAuth futuro)
     'rest_framework',
+    'anymail',
     'rest_framework.authtoken',
     'django_filters',
     'whitenoise.runserver_nostatic',
@@ -157,6 +160,70 @@ CSRF_TRUSTED_ORIGINS = [
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+
+# core/settings.py — configuración de correo electrónico
+
+# ── URL base (para los enlaces dentro de los correos) ─────────────────────
+SITE_URL = env('SITE_URL', default='http://127.0.0.1:8000').rstrip('/')
+
+# ── CELERY ────────────────────────────────────────────────────────────────
+#   eager (por defecto): sin Redis ni worker; .delay() ejecuta la tarea ahí mismo.
+#   redis              : cola real (casa / servidor con Redis). Requiere REDIS_URL.
+CELERY_MODE = env('CELERY_MODE', default='eager')
+
+CELERY_ACCEPT_CONTENT     = ['json']
+CELERY_TASK_SERIALIZER    = 'json'
+CELERY_RESULT_SERIALIZER  = 'json'
+CELERY_TIMEZONE           = TIME_ZONE
+CELERY_TASK_DEFAULT_QUEUE = 'erp_django'
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_TASK_SOFT_TIME_LIMIT = 300
+CELERY_TASK_TIME_LIMIT      = 360
+
+if CELERY_MODE == 'redis':
+    CELERY_BROKER_URL     = env('REDIS_URL', default='redis://localhost:6379/0')
+    CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+    CELERY_TASK_ALWAYS_EAGER = False
+else:
+    CELERY_BROKER_URL     = 'memory://'
+    CELERY_RESULT_BACKEND = 'cache+memory://'
+    CELERY_TASK_ALWAYS_EAGER = True
+
+# En eager, si una tarea falla NO tumba la vista web (se registra en el log).
+# Los tests la activan con @override_settings(CELERY_TASK_EAGER_PROPAGATES=True).
+CELERY_TASK_EAGER_PROPAGATES = False
+
+# ── CORREO ────────────────────────────────────────────────────────────────
+#   EMAIL_MODE=archivo  (defecto) guarda cada correo en correos_enviados/
+#   EMAIL_MODE=gmail    SMTP de Gmail (si la red de la escuela lo permite)
+#   EMAIL_MODE=sendgrid SendGrid vía django-anymail (opcional)
+#   EMAIL_MODE=consola  imprime el correo en la terminal
+EMAIL_MODE = env('EMAIL_MODE', default='archivo')
+
+EMAIL_FILE_PATH      = BASE_DIR / 'correos_enviados'
+EMAIL_SUBJECT_PREFIX = '[Catalogo] '
+ADMINS = [('Admin Catalogo', env('ADMIN_EMAIL', default='admin@catalogo.local'))]
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL',
+                         default='Catalogo <noreply@catalogo.local>')
+
+if EMAIL_MODE == 'gmail':
+    EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST          = 'smtp.gmail.com'
+    EMAIL_PORT          = 587
+    EMAIL_USE_TLS       = True
+    EMAIL_TIMEOUT       = 20
+    EMAIL_HOST_USER     = env('EMAIL_HOST_USER', default='')
+    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')   # contraseña de aplicación
+    DEFAULT_FROM_EMAIL  = EMAIL_HOST_USER or DEFAULT_FROM_EMAIL    # Gmail exige tu propio correo
+elif EMAIL_MODE == 'sendgrid':
+    EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
+    INSTALLED_APPS = INSTALLED_APPS + ['anymail']
+    ANYMAIL = {'SENDGRID_API_KEY': env('SENDGRID_API_KEY', default='')}
+elif EMAIL_MODE == 'consola':
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'core.correo_archivo.ArchivoEmailBackend'
+
 # ── JAZZMIN — Personalización del admin con Fable 5 AzulERP ───────────────
 JAZZMIN_SETTINGS = {
     # Identidad
@@ -277,37 +344,3 @@ ACCOUNT_SESSION_REMEMBER       = True           # recordar sesión
 # LOGIN_URL           = '/accounts/login/'
 # LOGIN_REDIRECT_URL  = '/productos/'
 LOGOUT_REDIRECT_URL = '/'
-
-
-
-# core/settings.py — agregar al final (después de JAZZMIN_SETTINGS):
-
-# ── CELERY — Cola de tareas asíncronas ────────────────────────────────────
-# Broker: Redis almacena los mensajes de las tareas pendientes
-CELERY_BROKER_URL = env('REDIS_URL', default='redis://localhost:6379/0')
-
-# Backend: Redis almacena los resultados de las tareas (opcional)
-CELERY_RESULT_BACKEND = env('REDIS_URL', default='redis://localhost:6379/0')
-
-# Formato de serialización (JSON es seguro y portable)
-CELERY_ACCEPT_CONTENT    = ['json']
-CELERY_TASK_SERIALIZER   = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-
-# Zona horaria (heredar de Django)
-CELERY_TIMEZONE = TIME_ZONE   # 'America/Mexico_City'
-
-# Reintentos automáticos ante fallos de conexión al broker
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-
-# Tiempo máximo que puede correr una tarea antes de ser terminada (segundos)
-CELERY_TASK_SOFT_TIME_LIMIT = 300   # 5 minutos
-CELERY_TASK_TIME_LIMIT       = 360  # 6 minutos (hard limit)
-
-# Prefijo para las colas (útil si se comparte Redis entre proyectos)
-CELERY_TASK_DEFAULT_QUEUE = 'erp_django'
-
-# Para tests: ejecutar tareas sincrónicamente (sin worker)
-# Se activa en tests con @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
-CELERY_TASK_ALWAYS_EAGER         = False
-CELERY_TASK_EAGER_PROPAGATES     = True

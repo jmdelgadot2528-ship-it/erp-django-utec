@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Confirmación de pedido {{ pedido.numero_pedido }}</title>
+    <style>
+        /* Paleta Plastic Hearts — estilos simples para clientes de correo */
+        body {
+            margin: 0; padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            background: #FFF7FB;
+            color: #0E080C;
+        }
+        .wrapper {
+            max-width: 600px;
+            margin: 24px auto;
+            background: #FFFFFF;
+            border: 2px solid #0E080C;
+        }
+        /* Encabezado */
+        .header {
+            background: #0E080C;
+            padding: 28px 32px;
+            border-bottom: 6px solid #E4007C;
+        }
+        .header-title {
+            color: #FFFFFF;
+            font-family: Impact, 'Arial Black', Arial, sans-serif;
+            font-size: 26px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .header-sub {
+            color: #FF5CAE;
+            font-size: 12px;
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+        }
+        /* Cuerpo */
+        .body { padding: 28px 32px; }
+        .greeting { font-size: 17px; margin: 0 0 12px; }
+        .muted { color: #6E5663; }
+        /* Caja del pedido */
+        .pedido-box {
+            background: #FFF0F7;
+            border: 2px solid #0E080C;
+            border-left: 8px solid #E4007C;
+            padding: 16px 20px;
+            margin: 20px 0;
+        }
+        .pedido-num {
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .pedido-total {
+            font-family: Impact, 'Arial Black', Arial, sans-serif;
+            font-size: 24px;
+            color: #E4007C;
+            margin-top: 6px;
+        }
+        /* Tabla de productos */
+        .productos-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .productos-table th {
+            background: #0E080C;
+            color: #FFFFFF;
+            padding: 10px 14px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            text-align: left;
+            border-bottom: 3px solid #E4007C;
+        }
+        .productos-table th.num { text-align: right; }
+        .productos-table td {
+            padding: 9px 14px;
+            border-bottom: 1px solid #F0C6DB;
+            font-size: 14px;
+        }
+        .productos-table td.num { text-align: right; }
+        .total-row td {
+            background: #FFE0EF;
+            border-top: 2px solid #E4007C;
+            font-weight: bold;
+            font-size: 15px;
+            padding: 12px 14px;
+        }
+        .total-valor { color: #8B004E; text-align: right; }
+        /* Botón */
+        .cta-section { text-align: center; margin: 24px 0; }
+        .cta-btn {
+            display: inline-block;
+            background: #E4007C;
+            color: #FFFFFF;
+            padding: 12px 28px;
+            border: 2px solid #0E080C;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+        /* Pie */
+        .footer {
+            background: #0E080C;
+            padding: 16px 32px;
+            font-size: 12px;
+            color: #B89AAB;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+
+    <!-- ENCABEZADO -->
+    <div class="header">
+        <div class="header-title">¡Pago confirmado!</div>
+        <div class="header-sub">{{ config.nombre_empresa }}</div>
+    </div>
+
+    <!-- CUERPO -->
+    <div class="body">
+        <p class="greeting">
+            Hola, <strong>{{ pedido.cliente.nombre }}</strong>:
+        </p>
+        <p class="muted" style="margin:0 0 16px;">
+            Gracias por tu compra. Tu pedido ha sido confirmado
+            y está siendo procesado.
+        </p>
+
+        <!-- Número y total del pedido -->
+        <div class="pedido-box">
+            <div class="pedido-num">Pedido {{ pedido.numero_pedido }}</div>
+            <div class="pedido-total">Total pagado: ${{ pedido.total_pagado }}</div>
+            <div class="muted" style="font-size:13px;margin-top:6px;">
+                Fecha: {{ pedido.fecha_pedido|date:"d/m/Y H:i" }}
+            </div>
+        </div>
+
+        <!-- Productos del pedido (items_snapshot, con subtotal calculado) -->
+        {% if items %}
+        <table class="productos-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th class="num">Precio</th>
+                    <th class="num">Cant.</th>
+                    <th class="num">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.nombre }}</td>
+                    <td class="num">${{ item.precio }}</td>
+                    <td class="num">{{ item.cantidad }}</td>
+                    <td class="num">${{ item.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="3">Total (con IVA):</td>
+                    <td class="total-valor">${{ pedido.total_pagado }}</td>
+                </tr>
+            </tfoot>
+        </table>
+        {% endif %}
+
+        <!-- Botón -->
+        <div class="cta-section">
+            <a href="{{ url_catalogo }}" class="cta-btn">Seguir comprando</a>
+        </div>
+
+        <p class="muted" style="font-size:13px;margin:8px 0 0;">
+            Equipo de {{ config.nombre_empresa }}
+        </p>
+    </div>
+
+    <!-- PIE -->
+    <div class="footer">
+        <p style="margin:0;">{{ config.nombre_empresa }}
+           {% if config.rfc %}· RFC: {{ config.rfc }}{% endif %}</p>
+        <p style="margin:4px 0 0;">
+            Este correo fue generado automáticamente. No responder directamente.
+        </p>
+    </div>
+
+</div>
+</body>
+</html>
