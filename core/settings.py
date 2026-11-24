@@ -193,36 +193,48 @@ else:
 # Los tests la activan con @override_settings(CELERY_TASK_EAGER_PROPAGATES=True).
 CELERY_TASK_EAGER_PROPAGATES = False
 
-# ── CORREO ────────────────────────────────────────────────────────────────
-#   EMAIL_MODE=archivo  (defecto) guarda cada correo en correos_enviados/
-#   EMAIL_MODE=gmail    SMTP de Gmail (si la red de la escuela lo permite)
-#   EMAIL_MODE=sendgrid SendGrid vía django-anymail (opcional)
-#   EMAIL_MODE=consola  imprime el correo en la terminal
-EMAIL_MODE = env('EMAIL_MODE', default='archivo')
+# ── CORREO ELECTRÓNICO (W17) ──────────────────────────────────────────────
+# En desarrollo: backend de consola (imprime el correo en la terminal).
+# En producción: settings_prod.py activa anymail + SendGrid si existe
+#                SENDGRID_API_KEY.
+# En tests: Django usa SIEMPRE locmem (mail.outbox), sin importar esto.
+EMAIL_BACKEND = env(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend'
+)
 
-EMAIL_FILE_PATH      = BASE_DIR / 'correos_enviados'
-EMAIL_SUBJECT_PREFIX = '[Catalogo] '
-ADMINS = [('Admin Catalogo', env('ADMIN_EMAIL', default='admin@catalogo.local'))]
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL',
-                         default='Catalogo <noreply@catalogo.local>')
+# Remitente visible. En SendGrid DEBE ser un "Sender" verificado
+# (Settings → Sender Authentication); si no, SendGrid responde 403.
+DEFAULT_FROM_EMAIL = env(
+    'DEFAULT_FROM_EMAIL',
+    default='ERP Django <noreply@erp-django.com>'
+)
+# Remitente de los correos de error que Django envía a ADMINS
+# (por defecto 'root@localhost', que SendGrid rechazaría).
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-if EMAIL_MODE == 'gmail':
-    EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST          = 'smtp.gmail.com'
-    EMAIL_PORT          = 587
-    EMAIL_USE_TLS       = True
-    EMAIL_TIMEOUT       = 20
-    EMAIL_HOST_USER     = env('EMAIL_HOST_USER', default='')
-    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')   # contraseña de aplicación
-    DEFAULT_FROM_EMAIL  = EMAIL_HOST_USER or DEFAULT_FROM_EMAIL    # Gmail exige tu propio correo
-elif EMAIL_MODE == 'sendgrid':
-    EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
-    INSTALLED_APPS = INSTALLED_APPS + ['anymail']
-    ANYMAIL = {'SENDGRID_API_KEY': env('SENDGRID_API_KEY', default='')}
-elif EMAIL_MODE == 'consola':
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-else:
-    EMAIL_BACKEND = 'core.correo_archivo.ArchivoEmailBackend'
+# Prefijo SOLO para mail_admins()/mail_managers() (errores del sistema);
+# no afecta a send_mail() ni a EmailMultiAlternatives.
+EMAIL_SUBJECT_PREFIX = '[ERP Django] '
+
+# Administradores que reciben alertas del sistema (stock bajo, errores 500)
+ADMINS = [
+    ('Admin ERP', env('ADMIN_EMAIL', default='admin@erp-django.com')),
+]
+
+# URL pública del sitio para los enlaces de los correos (las tareas
+# Celery no tienen request → no hay build_absolute_uri()).
+# Render define RENDER_EXTERNAL_URL automáticamente en cada servicio.
+SITE_URL = env(
+    'SITE_URL',
+    default=env('RENDER_EXTERNAL_URL', default='http://127.0.0.1:8000')
+).rstrip('/')
+
+# django-anymail (SendGrid)
+SENDGRID_API_KEY = env('SENDGRID_API_KEY', default='')
+ANYMAIL = {
+    'SENDGRID_API_KEY': SENDGRID_API_KEY,
+}
 
 # ── JAZZMIN — Personalización del admin con Fable 5 AzulERP ───────────────
 JAZZMIN_SETTINGS = {

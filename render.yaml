@@ -1,34 +1,70 @@
-# render.yaml
-# Documentación: https://render.com/docs/infrastructure-as-code
-
+# render.yaml — W12 (Docker) + W14/W15 (Stripe) + W16 (Celery) + W17 (correo)
+# Reemplaza TODO el archivo. Compáralo con el tuyo antes de pegarlo.
 services:
+
+  # ── Aplicación Web Django (con worker de Celery embebido) ──────────
   - type: web
     name: erp-django-utec
-    env: python
-    plan: free                     # plan gratuito para desarrollo académico
-    region: oregon                 # us-west región gratuita de Render
-    branch: main
-    buildCommand: |
-      pip install -r requirements.txt
-      python manage.py collectstatic --no-input
-      python manage.py migrate
-    startCommand: gunicorn core.wsgi --workers 2 --timeout 120 --log-file -
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
     healthCheckPath: /
+
     envVars:
+      # ── W03 / W12: base ─────────────────────────────────────────────
       - key: DJANGO_SETTINGS_MODULE
         value: core.settings_prod
       - key: SECRET_KEY
-        generateValue: true        # Render genera una clave aleatoria segura
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
       - key: DATABASE_URL
         fromDatabase:
           name: erp-django-db
           property: connectionString
-      - key: PYTHON_VERSION
-        value: "3.11.9"
 
+      # ── W14 / W15: Stripe ───────────────────────────────────────────
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET      # whsec_... del endpoint en el Dashboard de Stripe
+        sync: false
+
+      # ── W16: Celery + Redis (Key Value creado a mano en Render) ─────
+      - key: REDIS_URL                  # Internal Key Value URL (redis://red-...:6379)
+        sync: false
+      - key: CELERY_EMBEDDED_WORKER     # 1 = worker dentro del contenedor web
+        value: "1"
+
+      # ── W17: correo transaccional con SendGrid ──────────────────────
+      - key: SENDGRID_API_KEY           # SG.xxxx (permiso Mail Send)
+        sync: false
+      - key: DEFAULT_FROM_EMAIL         # ERP Django <sender-verificado@...>
+        sync: false
+      - key: ADMIN_EMAIL                # recibe alertas de stock y errores 500
+        sync: false
+
+      # ── W11: S3 (opcional) ──────────────────────────────────────────
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_STORAGE_BUCKET_NAME
+        sync: false
+
+# ── Base de datos ──────────────────────────────────────────────────
 databases:
   - name: erp-django-db
+    plan: free
+    region: oregon
     databaseName: erp_db
     user: erp_user
-    plan: free                     # PostgreSQL gratuito en Render (90 días)
-    region: oregon
+
+# NO declares aquí el Redis (type: redis/keyvalue) ni servicios "worker"
+# o "beat": en el plan Free el Redis se crea a mano (W16 §1.2) y el worker
+# corre embebido en el servicio web.

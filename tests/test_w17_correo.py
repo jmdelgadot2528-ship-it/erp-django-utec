@@ -1,21 +1,22 @@
-"""Suite de pruebas W17 — Correos transaccionales (PC escolar, sin envío real).
+"""Suite de pruebas W17 — Correos transaccionales con django-anymail.
 
 Usa el backend locmem (en memoria) para capturar correos sin enviarlos.
-Los correos "enviados" quedan en django.core.mail.outbox.
+Los correos enviados se almacenan en django.core.mail.outbox.
+NO se conecta a SendGrid ni a Redis (laboratorio sin Docker).
 
 Ejecutar con:
     python manage.py test tests.test_w17_correo --verbosity=2
 
 Resultado esperado:
-    Ran 11 tests in X.XXXs
+    Ran 12 tests in X.XXXs
     OK
 """
-import pathlib
-import tempfile
 from decimal import Decimal
+from unittest.mock import patch
+
+from celery.exceptions import Retry
 
 from django.core import mail
-from django.core.mail import EmailMultiAlternatives
 from django.test import TestCase, override_settings
 
 from clientes.models      import Cliente
@@ -34,37 +35,38 @@ EMAIL_SETTINGS = {
     'CELERY_TASK_EAGER_PROPAGATES': True,
     'ADMINS': [('Admin Test', 'admin@test.com')],
     'DEFAULT_FROM_EMAIL': 'test@erp.com',
+    'SITE_URL': 'https://erp-test.onrender.com',
 }
 
 
-def _crear_pedido_pagado(correo_enviado=False, items=None) -> Pedido:
+def _crear_pedido_pagado(correo_enviado=False, nombre_cliente='Cliente Test',
+                         precio='100.00', cantidad=2) -> Pedido:
     """Crea un Pedido en estado 'pagado' para los tests."""
     ConfiguracionERP.get_instance()
-    cat  = Categoria.objects.create(nombre=f'Cat-{Pedido.objects.count()}')
+    n    = Pedido.objects.count()
+    cat  = Categoria.objects.create(nombre=f'Cat-{n}')
     prod = Producto.objects.create(
-        nombre='Producto Test', precio=Decimal('100.00'),
+        nombre='Producto Test', precio=Decimal(precio),
         stock=5, categoria=cat
     )
     cli  = Cliente.objects.create(
-        nombre='Cliente Test',
-        correo=f'cliente{Pedido.objects.count()}@test.com'
+        nombre=nombre_cliente,
+        correo=f'cliente{n}@test.com'
     )
-    if items is None:
-        items = [
-            {
-                'producto_id': prod.pk,
-                'nombre':      prod.nombre,
-                'cantidad':    2,
-                'precio':      str(prod.precio),
-            }
-        ]
     return Pedido.objects.create(
-        numero_pedido  = f'PED-TEST-{Pedido.objects.count():03d}',
+        numero_pedido  = f'PED-TEST-{n:03d}',
         cliente        = cli,
         estado         = 'pagado',
         total_pagado   = Decimal('116.00'),
         correo_enviado = correo_enviado,
-        items_snapshot = items,
+        items_snapshot = [
+            {
+                'producto_id': prod.pk,
+                'nombre':      prod.nombre,
+                'cantidad':    cantidad,
+                'precio':      str(prod.precio),
+            }
+        ],
     )
 
 
@@ -103,17 +105,6 @@ class EnviarConfirmacionTest(TestCase):
         self.assertEqual(len(alternativas), 1)
         self.assertIn(str(pedido.total_pagado), alternativas[0])
 
-    def test_correo_subtotal_con_centavos(self):
-        """3 × $99.50 debe mostrarse como $298.50 (no redondeado a 298)."""
-        pedido = _crear_pedido_pagado(items=[
-            {'producto_id': 1, 'nombre': 'Cable', 'cantidad': 3,
-             'precio': '99.50'},
-        ])
-        enviar_confirmacion_pedido.delay(pedido.pk)
-
-        html = mail.outbox[0].alternatives[0][0]
-        self.assertIn('298.50', html)
-
     def test_correo_marca_correo_enviado_true(self):
         """Tras el envío, Pedido.correo_enviado debe ser True."""
         pedido = _crear_pedido_pagado()
@@ -137,6 +128,38 @@ class EnviarConfirmacionTest(TestCase):
         pedido = _crear_pedido_pagado(correo_enviado=True)
         resultado = enviar_confirmacion_pedido.delay(pedido.pk).get()
         self.assertEqual(resultado['estado'], 'skip')
+
+    # ── Pruebas de regresión agregadas en la verificación de W17 ─────────
+
+    def test_subtotal_conserva_centavos_y_url_usa_site_url(self):
+        """Subtotal = precio × cantidad con centavos; enlace con SITE_URL."""
+        pedido = _crear_pedido_pagado(precio='99.50', cantidad=3)
+        enviar_confirmacion_pedido.delay(pedido.pk)
+
+        html = mail.outbox[0].alternatives[0][0]
+        self.assertIn('$298.50', html)          # widthratio daría $298
+        self.assertIn('https://erp-test.onrender.com/catalogo/', html)
+
+    def test_texto_plano_no_escapa_html(self):
+        """La versión .txt no debe mostrar entidades HTML (&#x27; / &amp;)."""
+        pedido = _crear_pedido_pagado(nombre_cliente="O'Brien & Hijos")
+        enviar_confirmacion_pedido.delay(pedido.pk)
+
+        self.assertIn("O'Brien & Hijos", mail.outbox[0].body)
+
+    def test_fallo_de_envio_no_marca_correo_enviado(self):
+        """Si SendGrid falla, la tarea reintenta/propaga y NO marca el pedido."""
+        pedido = _crear_pedido_pagado()
+        with patch(
+            'django.core.mail.EmailMultiAlternatives.send',
+            side_effect=ConnectionError('SendGrid caído'),
+        ):
+            # En modo EAGER Celery reintenta y termina lanzando Retry
+            with self.assertRaises((ConnectionError, Retry)):
+                enviar_confirmacion_pedido.delay(pedido.pk)
+
+        pedido.refresh_from_db()
+        self.assertFalse(pedido.correo_enviado)
 
 
 @override_settings(**EMAIL_SETTINGS)
@@ -174,7 +197,7 @@ class AlertaStockTest(TestCase):
         self.assertIn('Teclado Escaso', mail.outbox[0].body)
 
     def test_no_alerta_si_todo_ok(self):
-        """Si todos los productos tienen stock >= umbral, no hay correo."""
+        """Si todos los productos tienen stock >= umbral, no se envía correo."""
         cat = Categoria.objects.create(nombre='Cat OK')
         Producto.objects.create(
             nombre='Bien surtido', precio=Decimal('100.00'),
@@ -184,28 +207,3 @@ class AlertaStockTest(TestCase):
         verificar_stock_bajo.delay(umbral=5)
 
         self.assertEqual(len(mail.outbox), 0)
-
-
-class ArchivoEmailBackendTest(TestCase):
-    """Tests del backend que guarda los correos como archivos."""
-
-    def test_guarda_eml_y_html(self):
-        """Cada correo con HTML debe generar un .eml y un .html."""
-        with tempfile.TemporaryDirectory() as carpeta:
-            with override_settings(
-                EMAIL_BACKEND='core.correo_archivo.ArchivoEmailBackend',
-                EMAIL_FILE_PATH=carpeta,
-            ):
-                mensaje = EmailMultiAlternatives(
-                    subject='Prueba con acentos: ñ — é',
-                    body='Texto plano',
-                    from_email='origen@test.com',
-                    to=['destino@test.com'],
-                )
-                mensaje.attach_alternative('<p>Hola</p>', 'text/html')
-                enviados = mensaje.send()
-
-            sufijos = sorted(p.suffix for p in pathlib.Path(carpeta).iterdir())
-
-        self.assertEqual(enviados, 1)
-        self.assertEqual(sufijos, ['.eml', '.html'])
