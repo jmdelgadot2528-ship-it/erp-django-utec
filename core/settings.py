@@ -161,38 +161,34 @@ STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
-# core/settings.py — configuración de correo electrónico
+# ── CELERY — Cola de tareas asíncronas (W16) ──────────────────────────────
+# REDIS_URL definida (Render → Key Value): las tareas se encolan en Redis
+#     y las procesa el worker embebido.
+# REDIS_URL vacía (laboratorio sin Docker / tests): modo EAGER →
+#     .delay() ejecuta la tarea en el mismo proceso, sin broker ni worker.
+REDIS_URL = env('REDIS_URL', default='')
 
-# ── URL base (para los enlaces dentro de los correos) ─────────────────────
-SITE_URL = env('SITE_URL', default='http://127.0.0.1:8000').rstrip('/')
-
-# ── CELERY ────────────────────────────────────────────────────────────────
-#   eager (por defecto): sin Redis ni worker; .delay() ejecuta la tarea ahí mismo.
-#   redis              : cola real (casa / servidor con Redis). Requiere REDIS_URL.
-CELERY_MODE = env('CELERY_MODE', default='eager')
-
-CELERY_ACCEPT_CONTENT     = ['json']
-CELERY_TASK_SERIALIZER    = 'json'
-CELERY_RESULT_SERIALIZER  = 'json'
-CELERY_TIMEZONE           = TIME_ZONE
-CELERY_TASK_DEFAULT_QUEUE = 'erp_django'
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-CELERY_TASK_SOFT_TIME_LIMIT = 300
-CELERY_TASK_TIME_LIMIT      = 360
-
-if CELERY_MODE == 'redis':
-    CELERY_BROKER_URL     = env('REDIS_URL', default='redis://localhost:6379/0')
-    CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+if REDIS_URL:
+    CELERY_BROKER_URL        = REDIS_URL
+    CELERY_RESULT_BACKEND    = REDIS_URL
     CELERY_TASK_ALWAYS_EAGER = False
 else:
-    CELERY_BROKER_URL     = 'memory://'
-    CELERY_RESULT_BACKEND = 'cache+memory://'
+    CELERY_BROKER_URL        = 'memory://'
+    CELERY_RESULT_BACKEND    = 'cache+memory://'
     CELERY_TASK_ALWAYS_EAGER = True
 
-# En eager, si una tarea falla NO tumba la vista web (se registra en el log).
-# Los tests la activan con @override_settings(CELERY_TASK_EAGER_PROPAGATES=True).
-CELERY_TASK_EAGER_PROPAGATES = False
+CELERY_RESULT_EXPIRES        = 3600
+CELERY_ACCEPT_CONTENT        = ['json']
+CELERY_TASK_SERIALIZER       = 'json'
+CELERY_RESULT_SERIALIZER     = 'json'
+CELERY_TIMEZONE              = TIME_ZONE
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_TASK_SOFT_TIME_LIMIT  = 300
+CELERY_TASK_TIME_LIMIT       = 360
+CELERY_TASK_DEFAULT_QUEUE    = 'erp_django'
+CELERY_TASK_EAGER_PROPAGATES = True
 
+# ── CELERY BEAT — Tareas programadas (W18) ────────────────────────────────
 # Hora del reporte diario (hora de México), configurable sin tocar código:
 #   Render → Environment → REPORTE_DIARIO_HORA=10:00
 REPORTE_DIARIO_HORA = env('REPORTE_DIARIO_HORA', default='08:00')
@@ -217,12 +213,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=_rep_h, minute=_rep_m),
         'options':  {'queue': 'erp_django'},
     },
-
 }
 
 # Necesario para que Beat use la zona horaria de Django (no UTC)
 CELERY_BEAT_TIMEZONE = TIME_ZONE   # 'America/Mexico_City'
-
 
 # ── CORREO ELECTRÓNICO (W17) ──────────────────────────────────────────────
 # En desarrollo: backend de consola (imprime el correo en la terminal).

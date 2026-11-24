@@ -13,7 +13,7 @@ Eventos manejados:
     payment_intent.payment_failed → Pedido.estado = 'cancelado'
 """
 import logging
-from ventas.tasks import enviar_confirmacion_pedido
+from ventas.tasks import enviar_confirmacion_pedido, verificar_stock_bajo
 import stripe
 from django.conf import settings
 from django.db.models import F
@@ -115,6 +115,20 @@ def _manejar_pago_exitoso(payment_intent: dict) -> None:
         # llegar a pago_exitoso().
         enviar_confirmacion_pedido.delay(pedido.pk)
         # ─────────────────────────────────────────────────────────────
+
+        # ── W18: revisar el stock justo después de descontarlo ─────────
+        # Beat lo revisa cada hora, pero en Render Free el servicio se
+        # duerme tras 15 min sin tráfico y el reloj de "cada hora" se
+        # reinicia: la alerta casi nunca llegaría. Aquí se dispara en el
+        # momento exacto en que el stock baja (la tarea solo manda correo
+        # si hay productos con stock < 5). try/except: un fallo del
+        # correo NO debe hacer fallar el webhook (Stripe necesita el 200).
+        try:
+            verificar_stock_bajo.delay(5)
+        except Exception:
+            logger.exception(
+                'Webhook: no se pudo ejecutar la verificación de stock bajo.'
+            )
     else:
         logger.info(
             f'Pedido {pedido.numero_pedido} ya estaba pagado — '
