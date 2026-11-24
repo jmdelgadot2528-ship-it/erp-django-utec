@@ -28,3 +28,6 @@ Thumbs.db
 # W17-W18 (PC escolar)
 correos_enviados/
 celerybeat-schedule*
+# Archivos ocultos de macOS
+._*
+.DS_Store

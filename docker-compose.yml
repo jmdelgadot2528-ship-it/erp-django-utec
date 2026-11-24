@@ -94,6 +94,32 @@ services:
       - redis
       - celery_worker
 
+    # ── Celery Beat — Scheduler de tareas programadas — W18 ────────────
+  # Beat NUNCA debe tener múltiples réplicas (un solo scheduler).
+  # Scheduler por defecto (archivo), igual que en Render: el proyecto no
+  # instala django_celery_beat. En Render, Beat va embebido en el worker
+  # (docker-entrypoint.sh, CELERY_EMBEDDED_BEAT=1); aquí es un servicio aparte.
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: celery -A core beat -l info --schedule=/tmp/celerybeat-schedule
+    volumes:
+      - .:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    env_file:
+      - .env                             # REPORTE_DIARIO_HORA, ADMIN_EMAIL...
+    environment:
+      DJANGO_SETTINGS_MODULE: core.settings_prod
+      DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-12345}@db:5432/${POSTGRES_DB:-erp_db}
+      REDIS_URL: redis://redis:6379/0
+
+
 volumes:
   postgres_data:
   static_volume:
